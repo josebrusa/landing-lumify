@@ -8,6 +8,7 @@ const { t } = useI18n()
 const company = ref('')
 const email = ref('')
 const submitted = ref(false)
+const errors = ref<{ email?: string }>({})
 
 const perks = [
   { key: 'reg.p1', icon: PhClipboard },
@@ -15,10 +16,33 @@ const perks = [
   { key: 'reg.p3', icon: PhTarget },
 ]
 
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+function validate(): boolean {
+  const next: { company?: string; email?: string } = {}
+  if (!email.value.trim()) {
+    next.email = t('reg.error_required')
+  } else if (!emailRegex.test(email.value.trim())) {
+    next.email = t('reg.error_email_invalid')
+  }
+  errors.value = next
+  return Object.keys(next).length === 0
+}
+
 function onSubmit() {
+  if (!validate()) return
   submitted.value = true
   company.value = ''
   email.value = ''
+  errors.value = {}
+}
+
+function clearError(field: 'email') {
+  if (errors.value[field]) {
+    const next = { ...errors.value }
+    delete next[field]
+    errors.value = next
+  }
 }
 </script>
 
@@ -57,22 +81,44 @@ function onSubmit() {
         class="flex gap-3 flex-wrap justify-center reveal"
         @submit.prevent="onSubmit"
       >
-        <input
-          v-model="company"
-          type="text"
-          :placeholder="t('reg.company')"
-          class="flex-1 min-w-[240px] max-w-[340px] py-4 px-5 rounded-full border-[1.5px] border-white/20 bg-white/10 text-white text-[0.95rem] outline-none transition-[border-color] focus:border-blue placeholder:text-white/40"
-        />
-        <input
-          v-model="email"
-          type="email"
-          :placeholder="t('reg.email')"
-          required
-          class="flex-1 min-w-[240px] max-w-[340px] py-4 px-5 rounded-full border-[1.5px] border-white/20 bg-white/10 text-white text-[0.95rem] outline-none transition-[border-color] focus:border-blue placeholder:text-white/40"
-        />
+        <div class="flex-1 min-w-[240px] max-w-[340px] flex flex-col gap-1">
+          <label for="register-company" class="sr-only">{{ t('reg.company') }}</label>
+          <input
+            id="register-company"
+            v-model="company"
+            type="text"
+            :placeholder="t('reg.company')"
+            autocomplete="organization"
+            class="w-full py-4 px-5 rounded-full border-[1.5px] border-white/20 bg-white/10 text-white text-[0.95rem] outline-none transition-[border-color] focus:border-blue placeholder:text-white/40"
+          />
+        </div>
+        <div class="flex-1 min-w-[240px] max-w-[340px] flex flex-col gap-1">
+          <label for="register-email" class="sr-only">{{ t('reg.email') }}</label>
+          <input
+            id="register-email"
+            v-model="email"
+            type="email"
+            :placeholder="t('reg.email')"
+            :aria-invalid="!!errors.email"
+            :aria-describedby="errors.email ? 'register-email-error' : undefined"
+            :aria-required="true"
+            autocomplete="email"
+            required
+            class="w-full py-4 px-5 rounded-full border-[1.5px] border-white/20 bg-white/10 text-white text-[0.95rem] outline-none transition-[border-color] focus:border-blue placeholder:text-white/40"
+            @input="clearError('email')"
+          />
+          <p
+            v-if="errors.email"
+            id="register-email-error"
+            class="text-sm text-red-300"
+            role="alert"
+          >
+            {{ errors.email }}
+          </p>
+        </div>
         <button
           type="submit"
-          class="py-4 px-8 rounded-full bg-blue text-white border-none cursor-pointer font-bold text-[0.95rem] font-sans transition-all hover:bg-[#5aaeff] hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(60,157,255,0.4)] whitespace-nowrap"
+          class="min-h-[44px] inline-flex items-center justify-center py-4 px-8 rounded-full bg-blue text-white border-none cursor-pointer font-bold text-[0.95rem] font-sans transition-all hover:bg-[#5aaeff] hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(60,157,255,0.4)] whitespace-nowrap"
         >
           {{ t('reg.btn') }}
         </button>

@@ -1,13 +1,18 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { PhX } from '@phosphor-icons/vue'
 import { useModals } from '../../composables/useModals'
 import { useI18n } from '../../composables/useI18n'
+import { useFocusTrap } from '../../composables/useFocusTrap'
 import { modalData } from '../../data/modalData'
 import type { ModalKey } from '../../data/modalData'
 
 const { currentModalKey, closeModal, openPricingModal } = useModals()
 const { locale, t } = useI18n()
+
+const modalRef = ref<HTMLElement | null>(null)
+const isModalOpen = computed(() => !!currentModalKey.value)
+useFocusTrap(modalRef, isModalOpen)
 
 const entry = computed(() => {
   const key = currentModalKey.value
@@ -23,20 +28,21 @@ function handleOverlayClick(e: MouseEvent) {
 <template>
   <div
     v-show="currentModalKey"
-    class="modal-overlay fixed inset-0 z-500 bg-[rgba(6,14,20,0.2)] backdrop-blur-md py-10 px-5 overflow-y-auto flex items-start justify-center"
+    class="modal-overlay fixed inset-0 z-500 bg-[rgba(6,14,20,0.2)] backdrop-blur-md overflow-y-auto flex justify-center items-start sm:items-center px-4 py-6 sm:px-5 sm:py-10"
     :class="{ open: !!currentModalKey }"
     @click="handleOverlayClick"
   >
     <div
       v-if="entry"
-      class="modal w-full max-w-[700px] bg-white rounded-[24px] p-[52px_48px] relative animate-[modalIn_0.35s_ease]"
+      ref="modalRef"
+      class="modal w-full max-w-[700px] bg-white rounded-[24px] p-6 sm:p-10 md:p-[52px_48px] relative animate-[modalIn_0.35s_ease]"
       role="dialog"
       aria-modal="true"
       @click.stop
     >
       <button
         type="button"
-        class="absolute top-5 right-5 w-9 h-9 rounded-full bg-gray-light border-none cursor-pointer flex items-center justify-center text-lg text-text-muted transition-colors hover:bg-gray-dark hover:text-white"
+        class="absolute top-5 right-5 min-w-[44px] min-h-[44px] w-11 h-11 rounded-full bg-gray-light border-none cursor-pointer flex items-center justify-center text-lg text-text-muted transition-colors hover:bg-gray-dark hover:text-white"
         aria-label="Cerrar"
         @click="closeModal()"
       >
@@ -70,7 +76,7 @@ function handleOverlayClick(e: MouseEvent) {
       </p>
       <button
         type="button"
-        class="modal-cta w-full py-4 rounded-full bg-blue text-white border-none text-center font-bold text-base cursor-pointer transition-all hover:bg-[#5aaeff] hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(60,157,255,0.35)]"
+        class="modal-cta w-full min-h-[44px] flex items-center justify-center py-4 rounded-full bg-blue text-white border-none text-center font-bold text-base cursor-pointer transition-all hover:bg-[#5aaeff] hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(60,157,255,0.35)]"
         @click="closeModal(); openPricingModal()"
       >
         {{ t('modal.pricingCta') }}

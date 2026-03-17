@@ -1,11 +1,10 @@
-import { computed } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useLocaleStore } from '../stores/locale'
 import { translations, type Lang } from '../data/translations'
 
 export function useI18n() {
   const localeStore = useLocaleStore()
-
-  const locale = computed(() => localeStore.lang)
+  const { lang: locale } = storeToRefs(localeStore)
 
   function t(key: string): string {
     const lang = localeStore.lang

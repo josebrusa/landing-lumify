@@ -26,11 +26,11 @@ const bullets = ['ab.e1', 'ab.e2', 'ab.e3', 'ab.e4', 'ab.e5']
         <p class="relative z-1 text-[0.92rem] text-white/65 leading-[1.7]">
           {{ t('ab.desc') }}
         </p>
-        <div class="about-values grid grid-cols-2 gap-4 mt-7 relative z-1">
+        <div class="about-values grid grid-cols-2 gap-4 mt-7 relative z-1 min-w-0">
           <div
             v-for="v in values"
             :key="v.titleKey"
-            class="value-chip bg-white/8 border border-white/12 rounded-xl p-4"
+            class="value-chip bg-white/8 border border-white/12 rounded-xl p-4 min-w-0 overflow-hidden"
           >
             <strong class="block text-[0.85rem] font-bold text-white mb-1">{{ t(v.titleKey) }}</strong>
             <span class="text-[0.78rem] text-white/45">{{ t(v.descKey) }}</span>

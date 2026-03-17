@@ -1,11 +1,16 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { PhX, PhLock } from '@phosphor-icons/vue'
 import { useModals } from '../../composables/useModals'
 import { useI18n } from '../../composables/useI18n'
+import { useFocusTrap } from '../../composables/useFocusTrap'
 
 const { isPricingOpen, closePricingModal } = useModals()
 const { t } = useI18n()
+
+const pricingModalRef = ref<HTMLElement | null>(null)
+const isOpen = computed(() => isPricingOpen.value)
+useFocusTrap(pricingModalRef, isOpen)
 
 const company = ref('')
 const email = ref('')
@@ -29,19 +34,20 @@ function onSubmit() {
 <template>
   <div
     v-show="isPricingOpen"
-    class="pricing-overlay fixed inset-0 z-600 bg-[rgba(6,14,20,0.2)] backdrop-blur-xl flex items-center justify-center p-6"
+    class="pricing-overlay fixed inset-0 z-600 bg-[rgba(6,14,20,0.2)] backdrop-blur-xl flex justify-center items-start sm:items-center overflow-y-auto px-4 py-6 sm:p-6"
     :class="{ open: isPricingOpen }"
     @click="handleOverlayClick"
   >
     <div
-      class="pricing-modal w-full max-w-[500px] bg-white rounded-[24px] p-12 py-11 relative text-center animate-[modalIn_0.35s_ease]"
+      ref="pricingModalRef"
+      class="pricing-modal w-full max-w-[500px] bg-white rounded-[24px] p-6 py-8 sm:p-10 sm:py-11 relative text-center animate-[modalIn_0.35s_ease]"
       role="dialog"
       aria-modal="true"
       @click.stop
     >
       <button
         type="button"
-        class="pm-close absolute top-[18px] right-[18px] w-[34px] h-[34px] rounded-full bg-gray-light border-none cursor-pointer flex items-center justify-center text-base text-text-muted transition-colors hover:bg-gray-dark hover:text-white"
+        class="pm-close absolute top-[18px] right-[18px] min-w-[44px] min-h-[44px] w-11 h-11 rounded-full bg-gray-light border-none cursor-pointer flex items-center justify-center text-base text-text-muted transition-colors hover:bg-gray-dark hover:text-white"
         aria-label="Cerrar"
         @click="closePricingModal()"
       >
@@ -72,18 +78,18 @@ function onSubmit() {
           v-model="company"
           type="text"
           :placeholder="t('reg.company')"
-          class="py-3.5 px-4 border-[1.5px] border-gray-light rounded-xl text-[0.95rem] outline-none transition-[border-color] focus:border-blue text-deep"
+          class="min-h-[44px] py-3.5 px-4 border-[1.5px] border-gray-light rounded-xl text-[0.95rem] outline-none transition-[border-color] focus:border-blue text-deep"
         />
         <input
           v-model="email"
           type="email"
           :placeholder="t('reg.email')"
           required
-          class="py-3.5 px-4 border-[1.5px] border-gray-light rounded-xl text-[0.95rem] outline-none transition-[border-color] focus:border-blue text-deep"
+          class="min-h-[44px] py-3.5 px-4 border-[1.5px] border-gray-light rounded-xl text-[0.95rem] outline-none transition-[border-color] focus:border-blue text-deep"
         />
         <button
           type="submit"
-          class="py-4 rounded-full bg-blue text-white border-none cursor-pointer font-bold text-base font-sans transition-all hover:bg-[#5aaeff] hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(60,157,255,0.35)]"
+          class="min-h-[44px] flex items-center justify-center py-4 rounded-full bg-blue text-white border-none cursor-pointer font-bold text-base font-sans transition-all hover:bg-[#5aaeff] hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(60,157,255,0.35)]"
         >
           {{ t('pm.submit') }}
         </button>
