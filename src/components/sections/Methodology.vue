@@ -23,7 +23,7 @@ const steps = [
         {{ t('met.desc') }}
       </p>
     </div>
-    <div class="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-0.5 bg-gray-light rounded-radius overflow-hidden reveal">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-0.5 bg-gray-light rounded-radius overflow-hidden reveal">
       <div
         v-for="s in steps"
         :key="s.num"

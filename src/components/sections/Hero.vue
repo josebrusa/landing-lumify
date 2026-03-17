@@ -9,7 +9,7 @@ const { openPricingModal } = useModals()
 <template>
   <section
     id="inicio"
-    class="min-h-screen bg-deep relative overflow-hidden flex items-center px-[5%] pt-[120px] pb-20"
+    class="min-h-screen bg-deep relative overflow-hidden flex flex-col justify-center px-[5%] pt-[120px] pb-20 gap-10 md:flex-row md:items-center md:justify-between md:gap-12"
   >
     <div
       class="absolute inset-0 z-0 bg-[radial-gradient(ellipse_80%_60%_at_70%_50%,rgba(60,157,255,0.18)_0%,transparent_65%),radial-gradient(ellipse_50%_80%_at_10%_80%,rgba(60,157,255,0.10)_0%,transparent_60%)]"
@@ -17,7 +17,7 @@ const { openPricingModal } = useModals()
     <div
       class="absolute inset-0 z-0 opacity-[0.07] bg-size-[60px_60px] bg-[linear-gradient(rgba(60,157,255,0.5)_1px,transparent_1px),linear-gradient(90deg,rgba(60,157,255,0.5)_1px,transparent_1px)]"
     />
-    <div class="relative z-10 max-w-[700px]">
+    <div class="relative z-10 max-w-[700px] w-full md:w-auto md:max-w-[700px]">
       <div
         class="inline-flex items-center gap-2 bg-blue/15 border border-blue/35 text-blue py-1.5 px-4 rounded-full text-xs font-semibold tracking-widest uppercase mb-7 animate-[fadeUp_0.8s_ease_both]"
       >
@@ -25,7 +25,7 @@ const { openPricingModal } = useModals()
         {{ t('hero.eyebrow') }}
       </div>
       <h1
-        class="font-heading text-[clamp(2.6rem,6vw,4.2rem)] font-extrabold text-white leading-[1.08] tracking-[-1.5px] mb-6 animate-[fadeUp_0.8s_0.1s_ease_both] [&_em]:text-white [&_em]:font-extrabold"
+        class="font-heading text-[1.75rem] leading-tight sm:text-[2.25rem] md:text-[clamp(2.6rem,6vw,4.2rem)] md:leading-[1.08] font-extrabold text-white tracking-[-0.5px] md:tracking-[-1.5px] mb-6 animate-[fadeUp_0.8s_0.1s_ease_both] wrap-break-word [&_em]:text-white [&_em]:font-extrabold"
         v-html="t('hero.title')"
       />
       <p
@@ -50,7 +50,7 @@ const { openPricingModal } = useModals()
       </div>
     </div>
     <div
-      class="absolute bottom-16 right-[5%] z-10 flex gap-10 md:static md:bottom-auto md:right-auto md:mt-14 md:gap-7 animate-[fadeUp_0.8s_0.4s_ease_both]"
+      class="relative z-10 w-full flex flex-wrap justify-start gap-6 sm:gap-8 md:mt-0 md:w-auto md:shrink-0 md:gap-7 animate-[fadeUp_0.8s_0.4s_ease_both]"
     >
       <div class="text-center">
         <div class="font-heading text-[2.2rem] font-extrabold text-white leading-none">
