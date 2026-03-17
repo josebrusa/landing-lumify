@@ -1,0 +1,6 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Sitemap (reemplaza el dominio por tu URL de producción si es distinta)
+Sitemap: https://lumify.es/sitemap.xml
