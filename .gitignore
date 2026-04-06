@@ -1,3 +1,31 @@
+# Dependencias
+node_modules
+
+# Lock de otros gestores (el proyecto usa pnpm)
+package-lock.json
+yarn.lock
+
+# Build y salida
+dist
+dist-ssr
+*.local
+
+# Vite
+.vite
+
+# TypeScript
+*.tsbuildinfo
+
+# Tests y cobertura
+coverage
+.nyc_output
+
+# Variables de entorno (no subir secretos)
+.env
+.env.local
+.env.*.local
+!.env.example
+
 # Logs
 logs
 *.log
@@ -7,19 +35,30 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Cachés y temporales
+.cache
+.temp
+tmp
+temp
+*.tmp
 
-# Editor directories and files
+# Editor / IDE
 .vscode/*
 !.vscode/extensions.json
 .idea
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-buckup/
+*.swp
+*~
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Otros
+backup/
+*.pem
