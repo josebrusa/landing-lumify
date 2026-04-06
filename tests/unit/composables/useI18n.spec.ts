@@ -1,6 +1,6 @@
 import { createApp, h } from 'vue'
 import { createPinia } from 'pinia'
-import { useI18n } from '../useI18n'
+import { useI18n } from '@/composables/useI18n'
 
 function withSetup<T>(composable: () => T): T {
   let result!: T

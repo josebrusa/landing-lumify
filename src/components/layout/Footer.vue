@@ -37,7 +37,15 @@ const { openModal, openPricingModal } = useModals()
       <div class="footer-links">
         <h5 class="text-white text-sm font-semibold mb-3.5 tracking-wide">{{ t('foot.s3') }}</h5>
         <ul class="list-none">
-          <li class="mb-2"><a href="#nosaltres" class="min-h-[44px] flex items-center text-white/45 no-underline text-sm transition-colors hover:text-blue">{{ t('foot.s3l1') }}</a></li>
+          <li class="mb-2"><a href="/#nosaltres" class="min-h-[44px] flex items-center text-white/45 no-underline text-sm transition-colors hover:text-blue">{{ t('foot.s3l1') }}</a></li>
+          <li class="mb-2">
+            <RouterLink
+              to="/training"
+              class="min-h-[44px] flex items-center text-white/45 no-underline text-sm transition-colors hover:text-blue"
+            >
+              {{ t('foot.training') }}
+            </RouterLink>
+          </li>
           <li class="mb-2"><button type="button" class="min-h-[44px] flex items-center w-full bg-transparent border-none py-2.5 pr-0 pl-0 text-left text-white/45 no-underline text-sm transition-colors hover:text-blue cursor-pointer font-inherit" @click="openPricingModal()">{{ t('foot.s3l2') }}</button></li>
           <li class="mb-2"><button type="button" class="min-h-[44px] flex items-center w-full bg-transparent border-none py-2.5 pr-0 pl-0 text-left text-white/45 no-underline text-sm transition-colors hover:text-blue cursor-pointer font-inherit">{{ t('foot.s3l3') }}</button></li>
         </ul>

@@ -1,12 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import Register from '../Register.vue'
-
-jest.mock('@phosphor-icons/vue', () => ({
-  PhClipboard: { name: 'PhClipboard', template: '<span />' },
-  PhChartBar: { name: 'PhChartBar', template: '<span />' },
-  PhTarget: { name: 'PhTarget', template: '<span />' },
-}))
+import Register from '@/components/HomeSections/Register.vue'
 
 describe('Register', () => {
   beforeEach(() => {
