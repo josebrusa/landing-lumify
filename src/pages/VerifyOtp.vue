@@ -4,10 +4,12 @@ import { useRoute, useRouter } from 'vue-router'
 import { PhArrowLeft, PhLockKey, PhShieldCheck } from '@phosphor-icons/vue'
 import { useAuthStore } from '../stores/auth'
 import { messageForAuthError } from '../api/auth'
+import { useI18n } from '../composables/useI18n'
 
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
+const { t } = useI18n()
 
 function safeRedirectPath(): string {
   const raw = typeof route.query.redirect === 'string' ? route.query.redirect : ''
@@ -24,6 +26,25 @@ function maskEmail(email: string | null): string {
 }
 
 const maskedEmail = computed(() => maskEmail(auth.otpEmail))
+
+const otpTitle = computed(() => {
+  if (auth.otpPurpose === 'login_2fa') return 'Segundo factor de acceso'
+  return 'Verificar cuenta'
+})
+
+const otpLead = computed(() => {
+  if (auth.otpPurpose === 'login_2fa') {
+    return 'Introduce el código de 6 dígitos para completar el inicio de sesión. Lo hemos enviado a'
+  }
+  return 'Introduce el código de 6 dígitos para verificar tu cuenta. Lo hemos enviado a'
+})
+
+const resendHint = computed(() => {
+  if (auth.otpPurpose === 'login_2fa') {
+    return 'No hay reenvío automático. Para recibir otro código, vuelve al inicio de sesión e inténtalo de nuevo.'
+  }
+  return 'No hay reenvío automático. Si no recibes el código, vuelve al inicio de sesión; si la cuenta aún no está verificada, podrás repetir el registro o el inicio de sesión según corresponda.'
+})
 
 const code = ref('')
 const error = ref('')
@@ -85,12 +106,13 @@ async function onSubmit() {
           <PhLockKey :size="24" weight="duotone" />
         </div>
         <div>
-          <p class="text-xs font-bold tracking-[2px] uppercase text-blue">Lumify</p>
-          <h1 class="font-heading text-xl font-extrabold text-deep tracking-tight">Verificación</h1>
+          <p class="text-xs font-bold tracking-[2px] uppercase text-blue">{{ t('brand.name') }}</p>
+          <h1 class="font-heading text-xl font-extrabold text-deep tracking-tight">{{ otpTitle }}</h1>
         </div>
       </div>
       <p class="text-sm text-text-muted mb-8 leading-relaxed">
-        Introduce el código de 6 dígitos enviado a <span class="font-semibold text-deep">{{ maskedEmail }}</span>
+        {{ otpLead }}
+        <span class="font-semibold text-deep">{{ maskedEmail }}</span>.
       </p>
 
       <form class="space-y-5" @submit.prevent="onSubmit">
@@ -125,7 +147,7 @@ async function onSubmit() {
         </button>
 
         <p class="text-xs text-text-muted text-center leading-relaxed">
-          Reenviar código no está disponible aún. Para recibir uno nuevo, vuelve al inicio de sesión.
+          {{ resendHint }}
         </p>
 
         <button

@@ -4,15 +4,23 @@ import { useRoute, useRouter } from 'vue-router'
 import { PhArrowLeft, PhLockKey, PhSignIn } from '@phosphor-icons/vue'
 import { useAuthStore } from '../stores/auth'
 import { messageForAuthError } from '../api/auth'
+import { useI18n } from '../composables/useI18n'
 
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
+const { t } = useI18n()
 
 function safeRedirectQuery() {
   const raw = typeof route.query.redirect === 'string' ? route.query.redirect : ''
   if (raw.startsWith('/') && !raw.startsWith('//')) return { redirect: raw }
   return {}
+}
+
+function postLoginDestination() {
+  const raw = typeof route.query.redirect === 'string' ? route.query.redirect : ''
+  if (raw.startsWith('/') && !raw.startsWith('//')) return raw
+  return '/admin'
 }
 
 const email = ref('')
@@ -28,8 +36,12 @@ async function onSubmit() {
   }
   loading.value = true
   try {
-    await auth.loginCredentials(email.value, password.value)
-    router.push({ name: 'verify-otp', query: safeRedirectQuery() })
+    const result = await auth.loginCredentials(email.value, password.value)
+    if (result.kind === 'session') {
+      router.replace(postLoginDestination())
+    } else {
+      router.push({ name: 'verify-otp', query: safeRedirectQuery() })
+    }
   } catch (e) {
     error.value = messageForAuthError(e, 'login')
   } finally {
@@ -64,12 +76,13 @@ async function onSubmit() {
           <PhLockKey :size="24" weight="duotone" />
         </div>
         <div>
-          <p class="text-xs font-bold tracking-[2px] uppercase text-blue">Lumify</p>
+          <p class="text-xs font-bold tracking-[2px] uppercase text-blue">{{ t('brand.name') }}</p>
           <h1 class="font-heading text-xl font-extrabold text-deep tracking-tight">Panel de administración</h1>
         </div>
       </div>
       <p class="text-sm text-text-muted mb-8 leading-relaxed">
-        Accede con tu correo y contraseña. Te enviaremos un código de verificación.
+        Accede con tu correo y contraseña. Si activaste el segundo factor en tu cuenta, te pediremos un código de 6
+        dígitos enviado por correo.
       </p>
 
       <form class="space-y-5" @submit.prevent="onSubmit">

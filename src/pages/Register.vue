@@ -1,12 +1,21 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { PhArrowLeft, PhLockKey, PhUserPlus } from '@phosphor-icons/vue'
 import { useAuthStore } from '../stores/auth'
 import { messageForAuthError } from '../api/auth'
+import { useI18n } from '../composables/useI18n'
 
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
+const { t } = useI18n()
+
+function safeRedirectQuery() {
+  const raw = typeof route.query.redirect === 'string' ? route.query.redirect : ''
+  if (raw.startsWith('/') && !raw.startsWith('//')) return { redirect: raw }
+  return {}
+}
 
 const email = ref('')
 const password = ref('')
@@ -31,7 +40,7 @@ async function onSubmit() {
   loading.value = true
   try {
     await auth.registerUser(email.value, password.value)
-    router.replace({ name: 'login' })
+    router.replace({ name: 'verify-otp', query: safeRedirectQuery() })
   } catch (e) {
     error.value = messageForAuthError(e, 'register')
   } finally {
@@ -66,7 +75,7 @@ async function onSubmit() {
           <PhLockKey :size="24" weight="duotone" />
         </div>
         <div>
-          <p class="text-xs font-bold tracking-[2px] uppercase text-blue">Lumify</p>
+          <p class="text-xs font-bold tracking-[2px] uppercase text-blue">{{ t('brand.name') }}</p>
           <h1 class="font-heading text-xl font-extrabold text-deep tracking-tight">Crear cuenta</h1>
         </div>
       </div>

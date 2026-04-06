@@ -5,6 +5,7 @@ import Login from '../pages/Login.vue'
 import Register from '../pages/Register.vue'
 import VerifyOtp from '../pages/VerifyOtp.vue'
 import Admin from '../pages/Admin.vue'
+import Settings from '../pages/Settings.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -36,6 +37,12 @@ const router = createRouter({
       path: '/admin',
       name: 'admin',
       component: Admin,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/admin/settings',
+      name: 'admin-settings',
+      component: Settings,
       meta: { requiresAuth: true },
     },
   ],

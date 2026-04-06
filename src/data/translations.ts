@@ -4,6 +4,7 @@ export type TranslationsMap = Record<string, string>
 
 export const translations: Record<Lang, TranslationsMap> = {
   es: {
+    'brand.name': 'Lumify',
     'nav.services': 'Servicios',
     'nav.packs': 'Packs',
     'nav.retainers': 'Retainers',
@@ -182,6 +183,7 @@ export const translations: Record<Lang, TranslationsMap> = {
     'foot.copy': '© 2026 Lumify. Todos los derechos reservados.',
   },
   ca: {
+    'brand.name': 'Lumify',
     'nav.services': 'Serveis',
     'nav.packs': 'Packs',
     'nav.retainers': 'Retainers',
@@ -360,6 +362,7 @@ export const translations: Record<Lang, TranslationsMap> = {
     'foot.copy': '© 2026 Lumify. Tots els drets reservats.',
   },
   en: {
+    'brand.name': 'Lumify',
     'nav.services': 'Services',
     'nav.packs': 'Packs',
     'nav.retainers': 'Retainers',

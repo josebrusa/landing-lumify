@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { PhSignOut, PhHouse } from '@phosphor-icons/vue'
+import { PhGear, PhSignOut, PhHouse } from '@phosphor-icons/vue'
 import { useAuthStore } from '../stores/auth'
+import { useI18n } from '../composables/useI18n'
+
 const router = useRouter()
 const auth = useAuthStore()
+const { t } = useI18n()
 
 onMounted(async () => {
   if (!auth.user) {
@@ -29,11 +32,18 @@ function logout() {
       class="flex items-center justify-between px-[5%] py-5 border-b border-gray-light/80 bg-white/90 backdrop-blur-sm"
     >
       <div>
-        <p class="text-xs font-bold tracking-[2px] uppercase text-blue">Lumify</p>
+        <p class="text-xs font-bold tracking-[2px] uppercase text-blue">{{ t('brand.name') }}</p>
         <h1 class="font-heading text-lg font-extrabold text-deep">Panel de administración</h1>
         <p v-if="auth.user" class="text-sm text-text-muted mt-1">{{ auth.user.email }}</p>
       </div>
       <div class="flex items-center gap-3">
+        <RouterLink
+          :to="{ name: 'admin-settings' }"
+          class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-light text-deep text-sm font-semibold hover:bg-surface2 transition-colors"
+        >
+          <PhGear :size="20" weight="regular" />
+          Seguridad
+        </RouterLink>
         <RouterLink
           to="/"
           class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-light text-deep text-sm font-semibold hover:bg-surface2 transition-colors"

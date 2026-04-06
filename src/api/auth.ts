@@ -6,16 +6,31 @@ import { apiClient, getApiBaseUrl } from './client'
 export interface AuthUser {
   id: string
   email: string
+  emailVerified: boolean
+  twoFactorLoginEnabled: boolean
 }
 
 export interface RegisterResponse {
   id: string
   email: string
+  challengeId: string
+  message?: string
 }
 
-export interface LoginResponse {
-  challengeId: string
-  message: string
+export type LoginResponse =
+  | { access_token: string }
+  | {
+      challengeId: string
+      message: string
+      purpose?: 'signup' | 'login_2fa'
+    }
+
+export function isLoginWithToken(res: LoginResponse): res is { access_token: string } {
+  return 'access_token' in res && typeof (res as { access_token?: string }).access_token === 'string'
+}
+
+export interface PatchTwoFactorResponse {
+  twoFactorLoginEnabled: boolean
 }
 
 export interface VerifyOtpResponse {
@@ -112,23 +127,45 @@ export async function getMe(accessToken: string): Promise<AuthUser> {
   }
 }
 
+export async function patchTwoFactorLogin(
+  accessToken: string,
+  enabled: boolean,
+): Promise<PatchTwoFactorResponse> {
+  assertBase()
+  try {
+    const { data } = await apiClient.patch<PatchTwoFactorResponse>(
+      '/auth/me/two-factor',
+      { enabled },
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      },
+    )
+    return data
+  } catch (e) {
+    throw toApiError(e)
+  }
+}
+
 /** Mensaje en español para mostrar en formularios según el endpoint y el código HTTP. */
 export function messageForAuthError(
   err: unknown,
-  context: 'register' | 'login' | 'verifyOtp' | 'me',
+  context: 'register' | 'login' | 'verifyOtp' | 'me' | 'twoFactor',
 ): string {
   if (err instanceof ApiError) {
     const { statusCode, message } = err
     if (context === 'login' && statusCode === 401) {
       return 'Credenciales incorrectas.'
     }
+    if (context === 'login' && statusCode === 403) {
+      return 'Debes verificar tu correo con el código que te enviamos al registrarte antes de iniciar sesión.'
+    }
     if (context === 'verifyOtp' && statusCode === 401) {
-      return 'Código incorrecto o expirado. Vuelve al inicio de sesión para solicitar uno nuevo.'
+      return 'Código incorrecto o expirado. Vuelve atrás e inicia sesión de nuevo para obtener otro código si aplica.'
     }
     if (context === 'register' && statusCode === 409) {
       return 'Este correo ya está registrado.'
     }
-    if (context === 'me' && statusCode === 401) {
+    if ((context === 'me' || context === 'twoFactor') && statusCode === 401) {
       return 'Sesión no válida o expirada.'
     }
     if (message && statusCode !== 0) return message
