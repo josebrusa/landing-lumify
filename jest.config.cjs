@@ -16,7 +16,8 @@ module.exports = {
   ],
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
-    '^@phosphor-icons/vue$': '<rootDir>/src/__mocks__/phosphor-icons-vue.js',
+    '^@/(.*)$': '<rootDir>/src/$1',
+    '^@phosphor-icons/vue$': '<rootDir>/tests/mocks/phosphor-icons-vue.js',
   },
   collectCoverageFrom: [
     'src/**/*.{ts,vue}',
