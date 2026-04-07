@@ -1,6 +1,6 @@
 import { createApp, h } from 'vue'
 import { createPinia } from 'pinia'
-import { useModals } from '../useModals'
+import { useModals } from '@/composables/useModals'
 
 function withSetup<T>(composable: () => T): T {
   let result!: T

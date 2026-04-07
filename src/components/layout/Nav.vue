@@ -49,11 +49,19 @@ function closeAndPricing() {
     </RouterLink>
 
     <ul class="hidden lg:flex items-center gap-9 list-none">
-      <li><a href="#servicios" class="text-white/78 no-underline text-sm font-medium transition-colors hover:text-blue tracking-[0.3px]">{{ t('nav.services') }}</a></li>
-      <li><a href="#packs" class="text-white/78 no-underline text-sm font-medium transition-colors hover:text-blue tracking-[0.3px]">{{ t('nav.packs') }}</a></li>
-      <li><a href="#retainers" class="text-white/78 no-underline text-sm font-medium transition-colors hover:text-blue tracking-[0.3px]">{{ t('nav.retainers') }}</a></li>
-      <li><a href="#metodologia" class="text-white/78 no-underline text-sm font-medium transition-colors hover:text-blue tracking-[0.3px]">{{ t('nav.method') }}</a></li>
-      <li><a href="#nosaltres" class="text-white/78 no-underline text-sm font-medium transition-colors hover:text-blue tracking-[0.3px]">{{ t('nav.about') }}</a></li>
+      <li><a href="/#servicios" class="text-white/78 no-underline text-sm font-medium transition-colors hover:text-blue tracking-[0.3px]">{{ t('nav.services') }}</a></li>
+      <li><a href="/#packs" class="text-white/78 no-underline text-sm font-medium transition-colors hover:text-blue tracking-[0.3px]">{{ t('nav.packs') }}</a></li>
+      <li><a href="/#retainers" class="text-white/78 no-underline text-sm font-medium transition-colors hover:text-blue tracking-[0.3px]">{{ t('nav.retainers') }}</a></li>
+      <li><a href="/#metodologia" class="text-white/78 no-underline text-sm font-medium transition-colors hover:text-blue tracking-[0.3px]">{{ t('nav.method') }}</a></li>
+      <li><a href="/#nosaltres" class="text-white/78 no-underline text-sm font-medium transition-colors hover:text-blue tracking-[0.3px]">{{ t('nav.about') }}</a></li>
+      <li>
+        <RouterLink
+          to="/training"
+          class="text-white/78 no-underline text-sm font-medium transition-colors hover:text-blue tracking-[0.3px] [&.router-link-exact-active]:text-blue"
+        >
+          {{ t('nav.training') }}
+        </RouterLink>
+      </li>
     </ul>
 
     <div class="flex items-center gap-4">
@@ -102,11 +110,18 @@ function closeAndPricing() {
     >
       <PhX :size="28" weight="bold" />
     </button>
-    <a href="#servicios" class="min-h-[44px] flex items-center text-white no-underline text-2xl font-heading font-bold hover:text-blue" @click="closeMenu">{{ t('nav.services') }}</a>
-    <a href="#packs" class="min-h-[44px] flex items-center text-white no-underline text-2xl font-heading font-bold hover:text-blue" @click="closeMenu">{{ t('nav.packs') }}</a>
-    <a href="#retainers" class="min-h-[44px] flex items-center text-white no-underline text-2xl font-heading font-bold hover:text-blue" @click="closeMenu">{{ t('nav.retainers') }}</a>
-    <a href="#metodologia" class="min-h-[44px] flex items-center text-white no-underline text-2xl font-heading font-bold hover:text-blue" @click="closeMenu">{{ t('nav.method') }}</a>
-    <a href="#nosaltres" class="min-h-[44px] flex items-center text-white no-underline text-2xl font-heading font-bold hover:text-blue" @click="closeMenu">{{ t('nav.about') }}</a>
+    <a href="/#servicios" class="min-h-[44px] flex items-center text-white no-underline text-2xl font-heading font-bold hover:text-blue" @click="closeMenu">{{ t('nav.services') }}</a>
+    <a href="/#packs" class="min-h-[44px] flex items-center text-white no-underline text-2xl font-heading font-bold hover:text-blue" @click="closeMenu">{{ t('nav.packs') }}</a>
+    <a href="/#retainers" class="min-h-[44px] flex items-center text-white no-underline text-2xl font-heading font-bold hover:text-blue" @click="closeMenu">{{ t('nav.retainers') }}</a>
+    <a href="/#metodologia" class="min-h-[44px] flex items-center text-white no-underline text-2xl font-heading font-bold hover:text-blue" @click="closeMenu">{{ t('nav.method') }}</a>
+    <a href="/#nosaltres" class="min-h-[44px] flex items-center text-white no-underline text-2xl font-heading font-bold hover:text-blue" @click="closeMenu">{{ t('nav.about') }}</a>
+    <RouterLink
+      to="/training"
+      class="min-h-[44px] flex items-center text-white no-underline text-2xl font-heading font-bold hover:text-blue"
+      @click="closeMenu"
+    >
+      {{ t('nav.training') }}
+    </RouterLink>
     <button
       type="button"
       class="min-h-[44px] inline-flex items-center bg-blue text-white py-2.5 px-5 rounded-full text-sm font-semibold no-underline border-none cursor-pointer font-sans"

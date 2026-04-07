@@ -1,3 +1,5 @@
+import { trainingCa, trainingEn, trainingEs } from './trainingTranslations'
+
 export type Lang = 'es' | 'ca' | 'en'
 
 export type TranslationsMap = Record<string, string>
@@ -9,6 +11,7 @@ export const translations: Record<Lang, TranslationsMap> = {
     'nav.retainers': 'Retainers',
     'nav.method': 'Metodología',
     'nav.about': 'Nosotros',
+    'nav.training': 'Formación',
     'nav.cta': 'Ver tarifas',
     'hero.eyebrow': 'PIM & Gobierno de Datos',
     'hero.title': 'El eje de tu <em>información de producto</em>',
@@ -177,9 +180,11 @@ export const translations: Record<Lang, TranslationsMap> = {
     'foot.s2l4': 'PIM Health Check',
     'foot.s3': 'Empresa',
     'foot.s3l1': 'Sobre nosotros',
+    'foot.training': 'Formación PIM',
     'foot.s3l2': 'Ver tarifas',
     'foot.s3l3': 'Contacto',
     'foot.copy': '© 2026 Lumify. Todos los derechos reservados.',
+    ...trainingEs,
   },
   ca: {
     'nav.services': 'Serveis',
@@ -187,6 +192,7 @@ export const translations: Record<Lang, TranslationsMap> = {
     'nav.retainers': 'Retainers',
     'nav.method': 'Metodologia',
     'nav.about': 'Nosaltres',
+    'nav.training': 'Formació',
     'nav.cta': 'Veure tarifes',
     'hero.eyebrow': "PIM & Govern de Dades",
     'hero.title': "L'eix de la teva <em>informació de producte</em>",
@@ -355,9 +361,11 @@ export const translations: Record<Lang, TranslationsMap> = {
     'foot.s2l4': 'PIM Health Check',
     'foot.s3': 'Empresa',
     'foot.s3l1': 'Sobre nosaltres',
+    'foot.training': 'Formació PIM',
     'foot.s3l2': 'Veure tarifes',
     'foot.s3l3': 'Contacte',
     'foot.copy': '© 2026 Lumify. Tots els drets reservats.',
+    ...trainingCa,
   },
   en: {
     'nav.services': 'Services',
@@ -365,6 +373,7 @@ export const translations: Record<Lang, TranslationsMap> = {
     'nav.retainers': 'Retainers',
     'nav.method': 'Methodology',
     'nav.about': 'About',
+    'nav.training': 'Training',
     'nav.cta': 'See pricing',
     'hero.eyebrow': 'PIM & Data Governance',
     'hero.title': 'The backbone of your <em>product information</em>',
@@ -533,8 +542,10 @@ export const translations: Record<Lang, TranslationsMap> = {
     'foot.s2l4': 'PIM Health Check',
     'foot.s3': 'Company',
     'foot.s3l1': 'About us',
+    'foot.training': 'PIM training',
     'foot.s3l2': 'See pricing',
     'foot.s3l3': 'Contact',
     'foot.copy': '© 2026 Lumify. All rights reserved.',
+    ...trainingEn,
   },
 }
