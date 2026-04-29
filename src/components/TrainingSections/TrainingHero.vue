@@ -17,11 +17,11 @@ const { t } = useI18n()
       class="absolute inset-0 z-0 opacity-[0.07] bg-size-[60px_60px] bg-[linear-gradient(rgba(60,157,255,0.5)_1px,transparent_1px),linear-gradient(90deg,rgba(60,157,255,0.5)_1px,transparent_1px)]"
     />
     <div
-      class="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-[rgba(60,157,255,0.12)] z-[1]"
+      class="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-[rgba(60,157,255,0.12)] z-1"
       aria-hidden="true"
     />
     <div
-      class="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-[rgba(60,157,255,0.08)] z-[1]"
+      class="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-[rgba(60,157,255,0.08)] z-1"
       aria-hidden="true"
     />
 
