@@ -66,3 +66,72 @@ export interface HttpErrorBody {
   message: string | string[]
   error?: string
 }
+
+/** Public + admin leads API (camelCase DTOs). */
+export type LeadInterestType = 'pim_service' | 'pim_training'
+export type LeadStatus = 'new' | 'answered'
+export type LeadEmailDelivery = 'queued' | 'sent' | 'failed'
+
+export interface CreateLeadBody {
+  company?: string
+  email: string
+  interestType: LeadInterestType
+  sourcePage: 'home' | 'training'
+  sourceSection: string
+  sourceCardId: string
+  sourceCta: string
+}
+
+export interface CreateLeadResponse {
+  id: string
+  status: LeadStatus
+  createdAt: string
+}
+
+export interface LeadAnswer {
+  message: string
+  sentAt: string
+  emailDelivery: LeadEmailDelivery
+}
+
+export interface LeadItem {
+  id: string
+  company: string
+  email: string
+  interestType: LeadInterestType
+  sourcePage: 'home' | 'training'
+  sourceSection: string
+  sourceCardId: string
+  sourceCta: string
+  status: LeadStatus
+  createdAt: string
+  answeredAt: string | null
+  answer: LeadAnswer | null
+}
+
+export interface ListLeadsQuery {
+  interestType?: LeadInterestType
+  status?: LeadStatus
+  search?: string
+  page?: number
+  limit?: number
+  sortBy?: 'createdAt' | 'answeredAt'
+  sortDir?: 'asc' | 'desc'
+}
+
+export interface ListLeadsResponse {
+  items: LeadItem[]
+  total: number
+}
+
+export interface LeadsSummaryBucket {
+  new: number
+  answered: number
+  all: number
+}
+
+export interface LeadsSummaryResponse {
+  service: LeadsSummaryBucket
+  training: LeadsSummaryBucket
+  totals: LeadsSummaryBucket
+}

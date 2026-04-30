@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { RouterLink, useRouter } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useI18n } from '../../composables/useI18n'
 import { useModals } from '../../composables/useModals'
 import { useAuthStore } from '../../stores/auth'
+import { useLeadsStore } from '../../stores/leads'
 import { PhX } from '@phosphor-icons/vue'
 import type { Lang } from '../../data/translations'
 
 const mobileMenuOpen = ref(false)
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
+const leads = useLeadsStore()
 const { t, locale, setLocale } = useI18n()
 const { currentModalKey, isPricingOpen } = useModals()
 
@@ -38,6 +41,23 @@ function closeMenu() {
 }
 function closeAndPricing() {
   closeMenu()
+  registerPricingIntent('mobile_nav', 'mobile_nav_pricing')
+  openPricingModal()
+}
+
+function registerPricingIntent(section: string, cta: string) {
+  const isTraining = route.path.startsWith('/training')
+  leads.registerIntent({
+    interestType: isTraining ? 'pim_training' : 'pim_service',
+    sourcePage: isTraining ? 'training' : 'home',
+    sourceSection: section,
+    sourceCardId: 'pricing_cta',
+    sourceCta: cta,
+  })
+}
+
+function openPricingFromNav() {
+  registerPricingIntent('nav', 'nav_pricing')
   openPricingModal()
 }
 
@@ -107,7 +127,7 @@ async function logout() {
       <button
         type="button"
         class="hidden lg:inline-flex min-h-[44px] items-center bg-blue text-white py-2.5 px-5 rounded-full text-sm font-semibold transition-all duration-200 hover:bg-[#5aaeff] hover:-translate-y-px border-none cursor-pointer font-sans"
-        @click="openPricingModal()"
+        @click="openPricingFromNav"
       >
         {{ t('nav.cta') }}
       </button>

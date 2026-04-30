@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { PhX, PhLock } from '@phosphor-icons/vue'
 import { useModals } from '../../composables/useModals'
 import { useI18n } from '../../composables/useI18n'
 import { useFocusTrap } from '../../composables/useFocusTrap'
+import { useLeadsStore, type LeadInterestType } from '../../stores/leads'
 
 const { isPricingOpen, closePricingModal } = useModals()
 const { t } = useI18n()
+const leads = useLeadsStore()
+const route = useRoute()
 
 const pricingModalRef = ref<HTMLElement | null>(null)
 const isOpen = computed(() => isPricingOpen.value)
@@ -15,19 +19,63 @@ useFocusTrap(pricingModalRef, isOpen)
 const company = ref('')
 const email = ref('')
 const submitted = ref(false)
+const errors = ref<{ email?: string }>({})
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function handleOverlayClick(e: MouseEvent) {
   if ((e.target as HTMLElement).classList?.contains('pricing-overlay')) closePricingModal()
 }
 
-function onSubmit() {
-  submitted.value = true
-  company.value = ''
-  email.value = ''
-  setTimeout(() => {
-    closePricingModal()
-    submitted.value = false
-  }, 2500)
+function resolveFallbackInterest(): LeadInterestType {
+  return route.path.startsWith('/training') ? 'pim_training' : 'pim_service'
+}
+
+function validate(): boolean {
+  const next: { email?: string } = {}
+  if (!email.value.trim()) {
+    next.email = t('reg.error_required')
+  } else if (!emailRegex.test(email.value.trim())) {
+    next.email = t('reg.error_email_invalid')
+  }
+  errors.value = next
+  return Object.keys(next).length === 0
+}
+
+function clearError(field: 'email') {
+  if (errors.value[field]) {
+    const next = { ...errors.value }
+    delete next[field]
+    errors.value = next
+  }
+}
+
+async function onSubmit() {
+  if (!validate()) return
+  try {
+    const fallbackInterest = resolveFallbackInterest()
+    const isTraining = fallbackInterest === 'pim_training'
+    await leads.createLead({
+      company: company.value,
+      email: email.value,
+      fallbackInterest,
+      fallbackContext: {
+        sourcePage: isTraining ? 'training' : 'home',
+        sourceSection: isTraining ? 'training_pricing_modal' : 'home_pricing_modal',
+        sourceCardId: 'pricing_modal',
+        sourceCta: 'pricing_modal_submit',
+      },
+    })
+    submitted.value = true
+    company.value = ''
+    email.value = ''
+    errors.value = {}
+    setTimeout(() => {
+      closePricingModal()
+      submitted.value = false
+    }, 2500)
+  } catch {
+    // leads.createLeadError is handled by store
+  }
 }
 </script>
 
@@ -73,6 +121,9 @@ function onSubmit() {
           {{ t('pm.p3') }}
         </div>
       </div>
+      <p v-if="leads.createLeadError" class="mb-4 text-sm text-red-500" role="alert">
+        {{ leads.createLeadError || t('reg.lead_submit_error') }}
+      </p>
       <form v-if="!submitted" class="flex flex-col gap-3" @submit.prevent="onSubmit">
         <input
           v-model="company"
@@ -80,18 +131,33 @@ function onSubmit() {
           :placeholder="t('reg.company')"
           class="min-h-[44px] py-3.5 px-4 border-[1.5px] border-gray-light rounded-xl text-[0.95rem] outline-none transition-[border-color] focus:border-blue text-deep"
         />
-        <input
-          v-model="email"
-          type="email"
-          :placeholder="t('reg.email')"
-          required
-          class="min-h-[44px] py-3.5 px-4 border-[1.5px] border-gray-light rounded-xl text-[0.95rem] outline-none transition-[border-color] focus:border-blue text-deep"
-        />
+        <div class="flex flex-col gap-1">
+          <input
+            v-model="email"
+            type="email"
+            :placeholder="t('reg.email')"
+            :aria-invalid="!!errors.email"
+            :aria-describedby="errors.email ? 'pricing-email-error' : undefined"
+            :aria-required="true"
+            required
+            class="min-h-[44px] py-3.5 px-4 border-[1.5px] border-gray-light rounded-xl text-[0.95rem] outline-none transition-[border-color] focus:border-blue text-deep"
+            @input="clearError('email')"
+          />
+          <p
+            v-if="errors.email"
+            id="pricing-email-error"
+            class="text-left text-sm text-red-500"
+            role="alert"
+          >
+            {{ errors.email }}
+          </p>
+        </div>
         <button
           type="submit"
+          :disabled="leads.createLeadSubmitting"
           class="min-h-[44px] flex items-center justify-center py-4 rounded-full bg-blue text-white border-none cursor-pointer font-bold text-base font-sans transition-all hover:bg-[#5aaeff] hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(60,157,255,0.35)]"
         >
-          {{ t('pm.submit') }}
+          {{ leads.createLeadSubmitting ? t('reg.submitting') : t('pm.submit') }}
         </button>
       </form>
       <p v-else class="text-green-600 font-medium">

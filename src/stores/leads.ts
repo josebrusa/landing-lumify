@@ -1,8 +1,16 @@
-import { computed, ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { defineStore } from 'pinia'
+import type { AxiosError } from 'axios'
+import * as leadsService from '@/services/leads.service'
+import type {
+  HttpErrorBody,
+  LeadInterestType,
+  LeadItem,
+  LeadsSummaryResponse,
+  ListLeadsQuery,
+} from '@/types/api'
 
-export type LeadInterestType = 'pim_service' | 'pim_training'
-export type LeadStatus = 'new' | 'answered'
+export type { LeadInterestType } from '@/types/api'
 
 export interface LeadIntent {
   interestType: LeadInterestType
@@ -13,58 +21,91 @@ export interface LeadIntent {
   capturedAt: string
 }
 
-export interface LeadAnswer {
-  message: string
-  sentAt: string
-  emailDelivery: 'mock_sent'
+interface LeadIntentFallback {
+  sourcePage?: LeadIntent['sourcePage']
+  sourceSection?: string
+  sourceCardId?: string
+  sourceCta?: string
 }
 
-export interface LeadEntry {
-  id: string
-  company: string
-  email: string
-  interestType: LeadInterestType
-  sourcePage: 'home' | 'training'
-  sourceSection: string
-  sourceCardId: string
-  sourceCta: string
-  status: LeadStatus
-  createdAt: string
-  answeredAt?: string
-  answer?: LeadAnswer
+export type AdminTableFilter = 'all' | 'new' | 'answered'
+
+export interface AdminTableState {
+  filter: AdminTableFilter
+  sortBy: 'createdAt' | 'answeredAt'
+  sortDir: 'asc' | 'desc'
+  page: number
+  limit: number
+  items: LeadItem[]
+  total: number
+  loading: boolean
+  error: string | null
 }
 
-const STORAGE_KEY = 'lumify.leads.v1'
 const INTENT_MAX_AGE_MS = 1000 * 60 * 30
 
 function nowIso() {
   return new Date().toISOString()
 }
 
-function generateLeadId() {
-  const token = Math.random().toString(36).slice(2, 8).toUpperCase()
-  return `LD-${token}`
+function fallbackSourcePageByInterest(interestType: LeadInterestType): LeadIntent['sourcePage'] {
+  return interestType === 'pim_training' ? 'training' : 'home'
 }
 
-function parseStoredLeads(): LeadEntry[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return []
-    const parsed = JSON.parse(raw) as LeadEntry[]
-    if (!Array.isArray(parsed)) return []
-    return parsed
-  } catch {
-    return []
+function buildFallbackIntent(
+  fallbackInterest: LeadInterestType,
+  fallbackContext?: LeadIntentFallback,
+): Omit<LeadIntent, 'capturedAt'> {
+  const sourcePage = fallbackContext?.sourcePage ?? fallbackSourcePageByInterest(fallbackInterest)
+  const sourceSection = fallbackContext?.sourceSection ?? (sourcePage === 'training' ? 'training' : 'register')
+  return {
+    interestType: fallbackInterest,
+    sourcePage,
+    sourceSection,
+    sourceCardId: fallbackContext?.sourceCardId ?? 'direct_form',
+    sourceCta: fallbackContext?.sourceCta ?? 'form_submit',
+  }
+}
+
+function formatHttpError(err: unknown): string {
+  const ax = err as AxiosError<HttpErrorBody>
+  const msg = ax.response?.data?.message
+  if (Array.isArray(msg)) return msg.join(', ')
+  if (typeof msg === 'string' && msg.trim()) return msg
+  if (ax.message) return ax.message
+  return 'Request failed'
+}
+
+function initialTableState(): AdminTableState {
+  return {
+    filter: 'new',
+    sortBy: 'createdAt',
+    sortDir: 'desc',
+    page: 1,
+    limit: 20,
+    items: [],
+    total: 0,
+    loading: false,
+    error: null,
   }
 }
 
 export const useLeadsStore = defineStore('leads', () => {
-  const leads = ref<LeadEntry[]>(parseStoredLeads())
   const currentIntent = ref<LeadIntent | null>(null)
 
-  function persist() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(leads.value))
-  }
+  const serviceTable = reactive<AdminTableState>(initialTableState())
+  const trainingTable = reactive<AdminTableState>(initialTableState())
+
+  const summary = ref<LeadsSummaryResponse | null>(null)
+  const summaryLoading = ref(false)
+  const summaryError = ref<string | null>(null)
+
+  const leadDetail = ref<LeadItem | null>(null)
+  const leadDetailLoading = ref(false)
+  const leadDetailError = ref<string | null>(null)
+
+  const createLeadSubmitting = ref(false)
+  const createLeadError = ref<string | null>(null)
 
   function registerIntent(intent: Omit<LeadIntent, 'capturedAt'>) {
     currentIntent.value = {
@@ -73,110 +114,172 @@ export const useLeadsStore = defineStore('leads', () => {
     }
   }
 
-  function resolveIntent(fallbackInterest: LeadInterestType): LeadIntent {
+  function resolveIntent(
+    fallbackInterest: LeadInterestType,
+    fallbackContext?: LeadIntentFallback,
+  ): Omit<LeadIntent, 'capturedAt'> {
     if (!currentIntent.value) {
-      return {
-        interestType: fallbackInterest,
-        sourcePage: fallbackInterest === 'pim_training' ? 'training' : 'home',
-        sourceSection: fallbackInterest === 'pim_training' ? 'training' : 'register',
-        sourceCardId: 'direct_form',
-        sourceCta: 'form_submit',
-        capturedAt: nowIso(),
-      }
+      return buildFallbackIntent(fallbackInterest, fallbackContext)
     }
 
     const age = Date.now() - new Date(currentIntent.value.capturedAt).getTime()
     if (!Number.isFinite(age) || age > INTENT_MAX_AGE_MS) {
+      const fallback = buildFallbackIntent(fallbackInterest, fallbackContext)
       return {
-        interestType: fallbackInterest,
-        sourcePage: fallbackInterest === 'pim_training' ? 'training' : 'home',
-        sourceSection: fallbackInterest === 'pim_training' ? 'training' : 'register',
-        sourceCardId: 'expired_intent',
-        sourceCta: 'form_submit',
-        capturedAt: nowIso(),
+        ...fallback,
+        sourceCardId: fallbackContext?.sourceCardId ?? 'expired_intent',
       }
     }
 
-    return currentIntent.value
+    const { interestType, sourcePage, sourceSection, sourceCardId, sourceCta } = currentIntent.value
+    return { interestType, sourcePage, sourceSection, sourceCardId, sourceCta }
   }
 
-  function createLead(payload: {
+  async function createLead(payload: {
     company: string
     email: string
     fallbackInterest: LeadInterestType
+    fallbackContext?: LeadIntentFallback
   }) {
-    const intent = resolveIntent(payload.fallbackInterest)
-    const lead: LeadEntry = {
-      id: generateLeadId(),
-      company: payload.company.trim() || 'Unknown company',
-      email: payload.email.trim(),
-      interestType: intent.interestType,
-      sourcePage: intent.sourcePage,
-      sourceSection: intent.sourceSection,
-      sourceCardId: intent.sourceCardId,
-      sourceCta: intent.sourceCta,
-      status: 'new',
-      createdAt: nowIso(),
+    createLeadSubmitting.value = true
+    createLeadError.value = null
+    try {
+      const intent = resolveIntent(payload.fallbackInterest, payload.fallbackContext)
+      const companyTrim = payload.company.trim()
+      const res = await leadsService.createPublicLead({
+        ...(companyTrim ? { company: companyTrim } : {}),
+        email: payload.email.trim(),
+        interestType: intent.interestType,
+        sourcePage: intent.sourcePage,
+        sourceSection: intent.sourceSection,
+        sourceCardId: intent.sourceCardId,
+        sourceCta: intent.sourceCta,
+      })
+      return res
+    } catch (e) {
+      createLeadError.value = formatHttpError(e)
+      throw e
+    } finally {
+      createLeadSubmitting.value = false
     }
-    leads.value = [lead, ...leads.value]
-    persist()
-    return lead
   }
 
-  function replyToLead(leadId: string, message: string) {
-    const idx = leads.value.findIndex((lead) => lead.id === leadId)
-    if (idx < 0) return null
-    const sentAt = nowIso()
-    leads.value[idx] = {
-      ...leads.value[idx],
-      status: 'answered',
-      answeredAt: sentAt,
-      answer: {
-        message: message.trim(),
-        sentAt,
-        emailDelivery: 'mock_sent',
-      },
+  function tableInterestType(key: 'service' | 'training'): ListLeadsQuery['interestType'] {
+    return key === 'service' ? 'pim_service' : 'pim_training'
+  }
+
+  async function refreshAdminTable(key: 'service' | 'training') {
+    const table = key === 'service' ? serviceTable : trainingTable
+    table.loading = true
+    table.error = null
+    try {
+      const query: ListLeadsQuery = {
+        interestType: tableInterestType(key),
+        page: table.page,
+        limit: table.limit,
+        sortBy: table.sortBy,
+        sortDir: table.sortDir,
+      }
+      if (table.filter !== 'all') {
+        query.status = table.filter === 'new' ? 'new' : 'answered'
+      }
+      const res = await leadsService.listAdminLeads(query)
+      table.items = res.items
+      table.total = res.total
+    } catch (e) {
+      table.error = formatHttpError(e)
+      table.items = []
+      table.total = 0
+    } finally {
+      table.loading = false
     }
-    persist()
-    return leads.value[idx]
   }
 
-  function getLeadById(leadId: string) {
-    return leads.value.find((lead) => lead.id === leadId) ?? null
+  async function fetchSummary() {
+    summaryLoading.value = true
+    summaryError.value = null
+    try {
+      summary.value = await leadsService.getAdminLeadsSummary()
+    } catch (e) {
+      summaryError.value = formatHttpError(e)
+      summary.value = null
+    } finally {
+      summaryLoading.value = false
+    }
   }
 
-  const serviceLeads = computed(() =>
-    leads.value.filter((lead) => lead.interestType === 'pim_service'),
-  )
-  const trainingLeads = computed(() =>
-    leads.value.filter((lead) => lead.interestType === 'pim_training'),
-  )
+  async function fetchLeadDetail(id: string) {
+    leadDetailLoading.value = true
+    leadDetailError.value = null
+    leadDetail.value = null
+    try {
+      leadDetail.value = await leadsService.getAdminLead(id)
+    } catch (e) {
+      leadDetailError.value = formatHttpError(e)
+      leadDetail.value = null
+    } finally {
+      leadDetailLoading.value = false
+    }
+  }
 
-  const servicePendingLeads = computed(() =>
-    serviceLeads.value.filter((lead) => lead.status === 'new'),
-  )
-  const trainingPendingLeads = computed(() =>
-    trainingLeads.value.filter((lead) => lead.status === 'new'),
-  )
-  const serviceAnsweredLeads = computed(() =>
-    serviceLeads.value.filter((lead) => lead.status === 'answered'),
-  )
-  const trainingAnsweredLeads = computed(() =>
-    trainingLeads.value.filter((lead) => lead.status === 'answered'),
-  )
+  function setServiceFilter(filter: AdminTableFilter) {
+    serviceTable.filter = filter
+    serviceTable.page = 1
+    void refreshAdminTable('service')
+  }
+
+  function setTrainingFilter(filter: AdminTableFilter) {
+    trainingTable.filter = filter
+    trainingTable.page = 1
+    void refreshAdminTable('training')
+  }
+
+  function setServiceSort(sortBy: 'createdAt' | 'answeredAt', sortDir: 'asc' | 'desc') {
+    serviceTable.sortBy = sortBy
+    serviceTable.sortDir = sortDir
+    serviceTable.page = 1
+    void refreshAdminTable('service')
+  }
+
+  function setTrainingSort(sortBy: 'createdAt' | 'answeredAt', sortDir: 'asc' | 'desc') {
+    trainingTable.sortBy = sortBy
+    trainingTable.sortDir = sortDir
+    trainingTable.page = 1
+    void refreshAdminTable('training')
+  }
+
+  function setServicePage(page: number) {
+    serviceTable.page = Math.max(1, page)
+    void refreshAdminTable('service')
+  }
+
+  function setTrainingPage(page: number) {
+    trainingTable.page = Math.max(1, page)
+    void refreshAdminTable('training')
+  }
 
   return {
-    leads,
     currentIntent,
     registerIntent,
     createLead,
-    replyToLead,
-    getLeadById,
-    serviceLeads,
-    trainingLeads,
-    servicePendingLeads,
-    trainingPendingLeads,
-    serviceAnsweredLeads,
-    trainingAnsweredLeads,
+    createLeadSubmitting,
+    createLeadError,
+    serviceTable,
+    trainingTable,
+    refreshAdminTable,
+    setServiceFilter,
+    setTrainingFilter,
+    setServiceSort,
+    setTrainingSort,
+    setServicePage,
+    setTrainingPage,
+    summary,
+    summaryLoading,
+    summaryError,
+    fetchSummary,
+    leadDetail,
+    leadDetailLoading,
+    leadDetailError,
+    fetchLeadDetail,
   }
 })
