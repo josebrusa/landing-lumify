@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { useI18n } from '../../composables/useI18n'
 import { useModals } from '../../composables/useModals'
+import { useLeadsStore } from '../../stores/leads'
 
 const { t } = useI18n()
 const { openModal } = useModals()
+const leads = useLeadsStore()
 
 const packs = [
   { key: 'pack-datos' as const, tagKey: 'pt1.tag', durKey: 'pt1.dur', titleKey: 'pt1.title', descKey: 'pt1.desc', featureKeys: ['pt1.f1', 'pt1.f2', 'pt1.f3'], featured: false },
@@ -11,6 +13,17 @@ const packs = [
   { key: 'pack-health' as const, tagKey: 'pt4.tag', durKey: 'pt4.dur', titleKey: 'pt4.title', descKey: 'pt4.desc', featureKeys: ['pt4.f1', 'pt4.f2', 'pt4.f3'], featured: false },
   { key: 'pack-beauty' as const, tagKey: 'pt3.tag', durKey: 'pt3.dur', titleKey: 'pt3.title', descKey: 'pt3.desc', featureKeys: ['pt3.f1', 'pt3.f2', 'pt3.f3'], featured: true },
 ]
+
+function handlePackInterest(packKey: (typeof packs)[number]['key']) {
+  leads.registerIntent({
+    interestType: 'pim_service',
+    sourcePage: 'home',
+    sourceSection: 'packs',
+    sourceCardId: packKey,
+    sourceCta: 'pack_card',
+  })
+  openModal(packKey)
+}
 </script>
 
 <template>
@@ -32,7 +45,7 @@ const packs = [
         :class="p.featured
           ? 'bg-deep border-transparent text-white shadow-[0_20px_50px_rgba(10,61,98,0.25)] hover:-translate-y-1 hover:shadow-[0_20px_60px_rgba(10,61,98,0.35)]'
           : 'bg-white border-gray-light hover:-translate-y-1 hover:shadow-[0_16px_50px_rgba(60,157,255,0.15)] hover:border-blue'"
-        @click="openModal(p.key)"
+        @click="handlePackInterest(p.key)"
       >
         <div class="flex-1 flex flex-col">
           <span
@@ -73,11 +86,11 @@ const packs = [
         </div>
         <button
           type="button"
-          class="block w-full min-h-[44px] flex items-center justify-center text-center py-3.5 rounded-full font-semibold text-[0.9rem] transition-all no-underline border-none cursor-pointer font-inherit"
+          class="w-full min-h-[44px] flex items-center justify-center text-center py-3.5 rounded-full font-semibold text-[0.9rem] transition-all no-underline border-none cursor-pointer font-inherit"
           :class="p.featured
             ? 'bg-blue text-white hover:bg-[#5aaeff] hover:-translate-y-0.5'
             : 'border-[1.5px] border-blue text-blue hover:bg-blue hover:text-white'"
-          @click="openModal(p.key)"
+          @click.stop="handlePackInterest(p.key)"
         >
           {{ t('pack.cta') }}
         </button>

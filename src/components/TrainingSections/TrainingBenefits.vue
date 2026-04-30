@@ -2,8 +2,10 @@
 import { ref } from 'vue'
 import { PhClipboard, PhChartBar, PhTarget } from '@phosphor-icons/vue'
 import { useI18n } from '../../composables/useI18n'
+import { useLeadsStore } from '../../stores/leads'
 
 const { t } = useI18n()
+const leads = useLeadsStore()
 
 const items = [
   { titleKey: 'train.ben.b1t', descKey: 'train.ben.b1d' },
@@ -37,6 +39,11 @@ function validate(): boolean {
 
 function onSubmit() {
   if (!validate()) return
+  leads.createLead({
+    company: company.value,
+    email: email.value,
+    fallbackInterest: 'pim_training',
+  })
   submitted.value = true
   company.value = ''
   email.value = ''

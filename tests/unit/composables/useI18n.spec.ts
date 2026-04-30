@@ -34,6 +34,11 @@ describe('useI18n', () => {
     expect(t('unknown.key')).toBe('unknown.key')
   })
 
+  it('t() replaces placeholders when params are passed', () => {
+    const { t } = withSetup(useI18n)
+    expect(t('auth.verify.subtitle_signup', { brand: 'Lumify' })).toContain('Lumify')
+  })
+
   it('setLocale changes locale and t() returns correct language', () => {
     const { t, setLocale } = withSetup(useI18n)
     expect(t('nav.services')).toBe('Servicios')

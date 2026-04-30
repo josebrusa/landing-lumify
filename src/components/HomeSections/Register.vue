@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from '../../composables/useI18n'
+import { useLeadsStore } from '../../stores/leads'
 import { PhClipboard, PhChartBar, PhTarget } from '@phosphor-icons/vue'
 
 const { t } = useI18n()
+const leads = useLeadsStore()
 
 const company = ref('')
 const email = ref('')
@@ -31,6 +33,11 @@ function validate(): boolean {
 
 function onSubmit() {
   if (!validate()) return
+  leads.createLead({
+    company: company.value,
+    email: email.value,
+    fallbackInterest: 'pim_service',
+  })
   submitted.value = true
   company.value = ''
   email.value = ''
@@ -128,6 +135,9 @@ function clearError(field: 'email') {
       </p>
       <p v-if="!submitted" class="mt-4 text-[0.8rem] text-white/40 reveal">
         {{ t('reg.note') }}
+      </p>
+      <p v-if="!submitted" class="mt-3 text-[0.75rem] text-white/35 max-w-md mx-auto leading-relaxed reveal">
+        {{ t('reg.lead_disclaimer', { brand: t('brand.name') }) }}
       </p>
     </div>
   </section>
