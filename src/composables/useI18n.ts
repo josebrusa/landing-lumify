@@ -6,10 +6,16 @@ export function useI18n() {
   const localeStore = useLocaleStore()
   const { lang: locale } = storeToRefs(localeStore)
 
-  function t(key: string): string {
+  function t(key: string, params?: Record<string, string | number>): string {
     const lang = localeStore.lang
     const map = translations[lang]
-    return map[key] ?? key
+    let s = map[key] ?? key
+    if (params) {
+      for (const [k, v] of Object.entries(params)) {
+        s = s.replaceAll(`{${k}}`, String(v))
+      }
+    }
+    return s
   }
 
   function setLocale(lang: Lang) {

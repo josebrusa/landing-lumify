@@ -1,7 +1,19 @@
 <script setup lang="ts">
 import { useI18n } from '../../composables/useI18n'
+import { useLeadsStore } from '../../stores/leads'
 
 const { t } = useI18n()
+const leads = useLeadsStore()
+
+function registerTrainingHeroIntent() {
+  leads.registerIntent({
+    interestType: 'pim_training',
+    sourcePage: 'training',
+    sourceSection: 'training_hero',
+    sourceCardId: 'hero_intro',
+    sourceCta: 'hero_cta',
+  })
+}
 </script>
 
 <template>
@@ -40,6 +52,7 @@ const { t } = useI18n()
       <a
         href="#programas-formacion"
         class="inline-flex items-center gap-2 mt-10 bg-blue text-white py-4 px-8 rounded-full font-semibold text-base no-underline transition-all duration-[0.25s] hover:bg-[#5aaeff] hover:-translate-y-0.5 hover:shadow-[0_12px_40px_rgba(60,157,255,0.4)]"
+        @click="registerTrainingHeroIntent"
       >
         {{ t('train.hero.cta') }}
       </a>

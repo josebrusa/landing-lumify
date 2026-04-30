@@ -1,15 +1,28 @@
 <script setup lang="ts">
 import { useI18n } from '../../composables/useI18n'
 import { useModals } from '../../composables/useModals'
+import { useLeadsStore } from '../../stores/leads'
 
 const { t } = useI18n()
 const { openModal } = useModals()
+const leads = useLeadsStore()
 
 const retainers = [
   { key: 'ret-lite' as const, tier: 'Lite', titleKey: 'rl.title', hoursKey: 'rl.hours', features: ['rl.f1', 'rl.f2', 'rl.f3'], best: false },
   { key: 'ret-std' as const, tier: 'Standard', titleKey: 'rs.title', hoursKey: 'rs.hours', features: ['rs.f1', 'rs.f2', 'rs.f3', 'rs.f4'], best: true },
   { key: 'ret-plus' as const, tier: 'Plus', titleKey: 'rp.title', hoursKey: 'rp.hours', features: ['rp.f1', 'rp.f2', 'rp.f3', 'rp.f4'], best: false },
 ]
+
+function handleRetainerInterest(retainerKey: (typeof retainers)[number]['key']) {
+  leads.registerIntent({
+    interestType: 'pim_service',
+    sourcePage: 'home',
+    sourceSection: 'retainers',
+    sourceCardId: retainerKey,
+    sourceCta: 'retainer_card',
+  })
+  openModal(retainerKey)
+}
 </script>
 
 <template>
@@ -32,7 +45,7 @@ const retainers = [
           ? 'bg-blue/10 border-blue after:content-[attr(data-label)] after:absolute after:top-[-12px] after:left-1/2 after:-translate-x-1/2 after:bg-blue after:text-white after:text-[0.72rem] after:font-bold after:uppercase after:py-1 after:px-3.5 after:rounded-full after:tracking-wider after:whitespace-nowrap'
           : 'bg-white/5 border-white/10 hover:-translate-y-1 hover:border-blue hover:bg-blue/10'"
         :data-label="r.best ? t('ret.popular') : undefined"
-        @click="openModal(r.key)"
+        @click="handleRetainerInterest(r.key)"
       >
         <div class="flex-1 flex flex-col">
           <div class="font-heading text-[0.75rem] font-bold tracking-[2px] uppercase text-blue mb-2.5">{{ r.tier }}</div>
@@ -53,7 +66,7 @@ const retainers = [
           type="button"
           class="block w-full min-h-[44px] flex items-center justify-center text-center py-3 rounded-full font-semibold text-[0.87rem] border transition-colors no-underline bg-transparent cursor-pointer font-inherit"
           :class="r.best ? 'border-blue text-blue' : 'border-white/20 text-white/70 hover:border-blue hover:text-blue hover:bg-blue/10'"
-          @click="openModal(r.key)"
+          @click="handleRetainerInterest(r.key)"
         >
           {{ t('ret.cta') }}
         </button>

@@ -36,6 +36,31 @@ npm install
 
 > El proyecto usa un `package-lock.json`, por lo que se recomienda **mantener npm** como gestor por defecto.
 
+Copia la configuración de entorno de ejemplo y apunta al backend:
+
+```bash
+cp .env.example .env
+```
+
+| Variable | Descripción |
+|----------|-------------|
+| `VITE_API_BASE_URL` | Origen del API NestJS **sin** `/api` al final (ej. `http://localhost:3000`). Las peticiones van a `${VITE_API_BASE_URL}/api/...`. |
+
+---
+
+## Backend API (auth y administración)
+
+La app consume el backend Lumify (NestJS): login con email/contraseña, verificación OTP (alta y 2FA), `GET /auth/me`, invitación de usuarios (`POST /admin/users`) y ajuste de 2FA. Rutas principales en el frontend:
+
+- `/login`, `/verify-otp`
+- `/admin` (invitar usuarios), `/admin/settings` (activar/desactivar 2FA en login)
+
+El alta de usuarios de plataforma es por **invitación de un administrador**, no por el formulario público de la sección “Pricing access” de la landing (ese bloque es solo solicitud de información comercial).
+
+Arquitectura HTTP: **`axios`** (`src/api/client.ts`), servicios por dominio en `src/services/`, tipos alineados al API en `src/types/api.ts`, sesión en Pinia (`src/stores/auth.ts`).
+
+En el backend, incluye el origen del frontend en `CORS_ORIGIN` (p. ej. `http://localhost:5173` en desarrollo).
+
 ---
 
 ## Scripts disponibles
@@ -109,6 +134,7 @@ Resumen de los directorios y archivos principales:
   - `index.ts`: registro e inicialización de Pinia.
   - `locale.ts`: gestión de idioma/locale.
   - `modal.ts`: estado de modales (abierto/cerrado, modal activo, etc.).
+  - `auth.ts`: sesión (JWT), usuario actual (`/auth/me`), login y 2FA.
 - **`src/composables`**:
   - `useI18n.ts`: lógica de internacionalización basada en los datos de `src/data/translations.ts`.
   - `useModals.ts`: helpers para abrir/cerrar modales desde componentes.
@@ -119,7 +145,11 @@ Resumen de los directorios y archivos principales:
   - `translations.ts`: diccionario de textos por idioma (por ahora ES, extensible a más).
   - `modalData.ts`: contenido y configuración de los distintos modales.
 - **`src/router/index.ts`**:
-  Configuración del router de Vue (rutas principales, actualmente centradas en `Home`).
+  Rutas públicas (`/`, `/training`, `/login`, `/verify-otp`) y área **`/admin`** (requiere JWT y rol admin).
+- **`src/api/`**: cliente Axios (`client.ts`), helpers de token (`auth-token.ts`).
+- **`src/services/`**: llamadas HTTP por dominio (`auth.service.ts`, `admin.service.ts`).
+- **`src/types/api.ts`**: tipos de request/response del API.
+- **`src/pages/`**: `Login.vue`, `VerifyOtp.vue`, `admin/AdminLayout.vue`, `AdminHome.vue`, `AdminSettings.vue`.
 - **`src/style.css`**:
   Estilos globales, integración con TailwindCSS 4 (via `@tailwindcss/vite`) y tipografías.
 - **`public/`**:

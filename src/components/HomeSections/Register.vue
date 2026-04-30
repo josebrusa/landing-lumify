@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from '../../composables/useI18n'
+import { useLeadsStore } from '../../stores/leads'
 import { PhClipboard, PhChartBar, PhTarget } from '@phosphor-icons/vue'
 
 const { t } = useI18n()
+const leads = useLeadsStore()
 
 const company = ref('')
 const email = ref('')
@@ -29,12 +31,21 @@ function validate(): boolean {
   return Object.keys(next).length === 0
 }
 
-function onSubmit() {
+async function onSubmit() {
   if (!validate()) return
-  submitted.value = true
-  company.value = ''
-  email.value = ''
-  errors.value = {}
+  try {
+    await leads.createLead({
+      company: company.value,
+      email: email.value,
+      fallbackInterest: 'pim_service',
+    })
+    submitted.value = true
+    company.value = ''
+    email.value = ''
+    errors.value = {}
+  } catch {
+    // createLeadError set in store; optional UI below
+  }
 }
 
 function clearError(field: 'email') {
@@ -76,6 +87,9 @@ function clearError(field: 'email') {
           {{ t(p.key) }}
         </div>
       </div>
+      <p v-if="leads.createLeadError" class="mb-4 text-sm text-red-300 reveal" role="alert">
+        {{ leads.createLeadError || t('reg.lead_submit_error') }}
+      </p>
       <form
         v-if="!submitted"
         class="flex gap-3 flex-wrap justify-center reveal"
@@ -118,9 +132,10 @@ function clearError(field: 'email') {
         </div>
         <button
           type="submit"
-          class="min-h-[44px] inline-flex items-center justify-center py-4 px-8 rounded-full bg-blue text-white border-none cursor-pointer font-bold text-[0.95rem] font-sans transition-all hover:bg-[#5aaeff] hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(60,157,255,0.4)] whitespace-nowrap"
+          :disabled="leads.createLeadSubmitting"
+          class="min-h-[44px] inline-flex items-center justify-center py-4 px-8 rounded-full bg-blue text-white border-none cursor-pointer font-bold text-[0.95rem] font-sans transition-all hover:bg-[#5aaeff] hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(60,157,255,0.4)] whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {{ t('reg.btn') }}
+          {{ leads.createLeadSubmitting ? t('reg.submitting') : t('reg.btn') }}
         </button>
       </form>
       <p v-else class="text-white/90 font-medium reveal">
@@ -128,6 +143,9 @@ function clearError(field: 'email') {
       </p>
       <p v-if="!submitted" class="mt-4 text-[0.8rem] text-white/40 reveal">
         {{ t('reg.note') }}
+      </p>
+      <p v-if="!submitted" class="mt-3 text-[0.75rem] text-white/35 max-w-md mx-auto leading-relaxed reveal">
+        {{ t('reg.lead_disclaimer', { brand: t('brand.name') }) }}
       </p>
     </div>
   </section>

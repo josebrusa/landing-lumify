@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { useI18n } from '../../composables/useI18n'
 import { useModals } from '../../composables/useModals'
+import { useLeadsStore } from '../../stores/leads'
 import { PhMagnifyingGlass, PhFolder, PhGear, PhRocketLaunch } from '@phosphor-icons/vue'
 
 const { t } = useI18n()
 const { openModal } = useModals()
+const leads = useLeadsStore()
 
 const services = [
   { key: 'assessment' as const, icon: PhMagnifyingGlass, titleKey: 's1.title', descKey: 's1.desc', linkKey: 's1.link' },
@@ -12,6 +14,17 @@ const services = [
   { key: 'implementacion' as const, icon: PhGear, titleKey: 's3.title', descKey: 's3.desc', linkKey: 's3.link' },
   { key: 'migracion' as const, icon: PhRocketLaunch, titleKey: 's4.title', descKey: 's4.desc', linkKey: 's4.link' },
 ]
+
+function handleServiceInterest(serviceKey: (typeof services)[number]['key']) {
+  leads.registerIntent({
+    interestType: 'pim_service',
+    sourcePage: 'home',
+    sourceSection: 'services',
+    sourceCardId: serviceKey,
+    sourceCta: 'service_card',
+  })
+  openModal(serviceKey)
+}
 </script>
 
 <template>
@@ -30,7 +43,7 @@ const services = [
         v-for="s in services"
         :key="s.key"
         class="reveal bg-white rounded-radius p-9 py-8 border border-gray-light transition-all duration-300 cursor-pointer relative overflow-hidden hover:-translate-y-1.5 hover:shadow-[0_24px_60px_rgba(10,61,98,0.12)] hover:border-transparent before:content-[''] before:absolute before:top-0 before:left-0 before:right-0 before:h-[3px] before:bg-linear-to-r before:from-deep before:to-blue before:opacity-0 before:transition-opacity before:duration-300 hover:before:opacity-100"
-        @click="openModal(s.key)"
+        @click="handleServiceInterest(s.key)"
       >
         <div
           class="w-[52px] h-[52px] bg-linear-to-br from-deep to-blue rounded-[14px] flex items-center justify-center mb-5 text-2xl text-white"
@@ -46,7 +59,7 @@ const services = [
         <button
           type="button"
           class="min-h-[44px] inline-flex items-center gap-1.5 text-blue text-[0.87rem] font-semibold mt-5 no-underline transition-[gap] hover:gap-2.5 bg-transparent border-none cursor-pointer font-inherit py-2.5 pr-0 pl-0"
-          @click="openModal(s.key)"
+          @click.stop="handleServiceInterest(s.key)"
         >
           {{ t(s.linkKey) }}
         </button>

@@ -1,10 +1,26 @@
 <script setup lang="ts">
+import { useRoute } from 'vue-router'
 import { RouterLink } from 'vue-router'
 import { useI18n } from '../../composables/useI18n'
 import { useModals } from '../../composables/useModals'
+import { useLeadsStore } from '../../stores/leads'
 
 const { t } = useI18n()
 const { openModal, openPricingModal } = useModals()
+const route = useRoute()
+const leads = useLeadsStore()
+
+function openPricingFromFooter() {
+  const isTraining = route.path.startsWith('/training')
+  leads.registerIntent({
+    interestType: isTraining ? 'pim_training' : 'pim_service',
+    sourcePage: isTraining ? 'training' : 'home',
+    sourceSection: 'footer',
+    sourceCardId: 'pricing_cta',
+    sourceCta: 'footer_pricing',
+  })
+  openPricingModal()
+}
 </script>
 
 <template>
@@ -46,7 +62,7 @@ const { openModal, openPricingModal } = useModals()
               {{ t('foot.training') }}
             </RouterLink>
           </li>
-          <li class="mb-2"><button type="button" class="min-h-[44px] flex items-center w-full bg-transparent border-none py-2.5 pr-0 pl-0 text-left text-white/45 no-underline text-sm transition-colors hover:text-blue cursor-pointer font-inherit" @click="openPricingModal()">{{ t('foot.s3l2') }}</button></li>
+          <li class="mb-2"><button type="button" class="min-h-[44px] flex items-center w-full bg-transparent border-none py-2.5 pr-0 pl-0 text-left text-white/45 no-underline text-sm transition-colors hover:text-blue cursor-pointer font-inherit" @click="openPricingFromFooter">{{ t('foot.s3l2') }}</button></li>
           <li class="mb-2"><button type="button" class="min-h-[44px] flex items-center w-full bg-transparent border-none py-2.5 pr-0 pl-0 text-left text-white/45 no-underline text-sm transition-colors hover:text-blue cursor-pointer font-inherit">{{ t('foot.s3l3') }}</button></li>
         </ul>
       </div>

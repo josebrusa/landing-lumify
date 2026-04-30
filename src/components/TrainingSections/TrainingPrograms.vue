@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useI18n } from '../../composables/useI18n'
+import { useLeadsStore } from '../../stores/leads'
 
 const { t } = useI18n()
+const leads = useLeadsStore()
 
 type ProgramId = 'a' | 'b'
 type BandId = 1 | 2 | 3
@@ -22,10 +24,34 @@ const delB = ['train.b.del1', 'train.b.del2', 'train.b.del3', 'train.b.del4', 't
 
 function selectProgram(id: ProgramId) {
   program.value = id
+  leads.registerIntent({
+    interestType: 'pim_training',
+    sourcePage: 'training',
+    sourceSection: 'training_programs',
+    sourceCardId: id === 'a' ? 'premium_program' : 'practical_program',
+    sourceCta: 'program_selector',
+  })
 }
 
 function selectBand(id: BandId) {
   band.value = id
+  leads.registerIntent({
+    interestType: 'pim_training',
+    sourcePage: 'training',
+    sourceSection: 'training_pricing',
+    sourceCardId: `band_${program.value}_${id}`,
+    sourceCta: 'price_band_selector',
+  })
+}
+
+function registerTrainingProgramCta(programId: ProgramId) {
+  leads.registerIntent({
+    interestType: 'pim_training',
+    sourcePage: 'training',
+    sourceSection: 'training_programs',
+    sourceCardId: programId === 'a' ? 'premium_program' : 'practical_program',
+    sourceCta: 'program_cta',
+  })
 }
 
 function cardPickClass(active: boolean) {
@@ -141,6 +167,7 @@ function bandClass(selected: boolean) {
           <a
             href="#cta-formacion"
             class="inline-flex min-h-[48px] items-center justify-center bg-blue text-white py-3 px-8 rounded-full text-sm font-semibold no-underline transition-all hover:bg-[#5aaeff] hover:-translate-y-px"
+            @click="registerTrainingProgramCta('a')"
           >
             {{ t('train.a.cta') }}
           </a>
@@ -215,6 +242,7 @@ function bandClass(selected: boolean) {
           <a
             href="#cta-formacion"
             class="inline-flex min-h-[48px] items-center justify-center bg-blue text-white py-3 px-8 rounded-full text-sm font-semibold no-underline transition-all hover:bg-[#5aaeff] hover:-translate-y-px"
+            @click="registerTrainingProgramCta('b')"
           >
             {{ t('train.b.cta') }}
           </a>

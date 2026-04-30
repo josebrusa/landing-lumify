@@ -1,12 +1,18 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useI18n } from '../../composables/useI18n'
 import { useModals } from '../../composables/useModals'
+import { useAuthStore } from '../../stores/auth'
+import { useLeadsStore } from '../../stores/leads'
 import { PhX } from '@phosphor-icons/vue'
 import type { Lang } from '../../data/translations'
 
 const mobileMenuOpen = ref(false)
+const router = useRouter()
+const route = useRoute()
+const auth = useAuthStore()
+const leads = useLeadsStore()
 const { t, locale, setLocale } = useI18n()
 const { currentModalKey, isPricingOpen } = useModals()
 
@@ -35,7 +41,30 @@ function closeMenu() {
 }
 function closeAndPricing() {
   closeMenu()
+  registerPricingIntent('mobile_nav', 'mobile_nav_pricing')
   openPricingModal()
+}
+
+function registerPricingIntent(section: string, cta: string) {
+  const isTraining = route.path.startsWith('/training')
+  leads.registerIntent({
+    interestType: isTraining ? 'pim_training' : 'pim_service',
+    sourcePage: isTraining ? 'training' : 'home',
+    sourceSection: section,
+    sourceCardId: 'pricing_cta',
+    sourceCta: cta,
+  })
+}
+
+function openPricingFromNav() {
+  registerPricingIntent('nav', 'nav_pricing')
+  openPricingModal()
+}
+
+async function logout() {
+  await auth.logout()
+  await router.push('/')
+  closeMenu()
 }
 </script>
 
@@ -77,10 +106,28 @@ function closeAndPricing() {
           {{ l.label }}
         </button>
       </div>
+      <div class="hidden lg:flex items-center gap-3">
+        <template v-if="auth.isAuthenticated">
+          <RouterLink
+            v-if="auth.hasRole('admin')"
+            to="/admin"
+            class="text-white/78 no-underline text-sm font-medium transition-colors hover:text-blue tracking-[0.3px]"
+          >
+            {{ t('nav.admin') }}
+          </RouterLink>
+          <button
+            type="button"
+            class="text-white/78 text-sm font-medium hover:text-blue bg-transparent border-none cursor-pointer tracking-[0.3px]"
+            @click="logout"
+          >
+            {{ t('nav.logout') }}
+          </button>
+        </template>
+      </div>
       <button
         type="button"
         class="hidden lg:inline-flex min-h-[44px] items-center bg-blue text-white py-2.5 px-5 rounded-full text-sm font-semibold transition-all duration-200 hover:bg-[#5aaeff] hover:-translate-y-px border-none cursor-pointer font-sans"
-        @click="openPricingModal()"
+        @click="openPricingFromNav"
       >
         {{ t('nav.cta') }}
       </button>
@@ -122,6 +169,23 @@ function closeAndPricing() {
     >
       {{ t('nav.training') }}
     </RouterLink>
+    <template v-if="auth.isAuthenticated">
+      <RouterLink
+        v-if="auth.hasRole('admin')"
+        to="/admin"
+        class="min-h-[44px] flex items-center text-white no-underline text-2xl font-heading font-bold hover:text-blue"
+        @click="closeMenu"
+      >
+        {{ t('nav.admin') }}
+      </RouterLink>
+      <button
+        type="button"
+        class="min-h-[44px] flex items-center text-white text-2xl font-heading font-bold hover:text-blue bg-transparent border-none cursor-pointer"
+        @click="logout"
+      >
+        {{ t('nav.logout') }}
+      </button>
+    </template>
     <button
       type="button"
       class="min-h-[44px] inline-flex items-center bg-blue text-white py-2.5 px-5 rounded-full text-sm font-semibold no-underline border-none cursor-pointer font-sans"
