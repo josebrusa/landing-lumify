@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import Register from '@/components/HomeSections/Register.vue'
 
@@ -53,6 +53,7 @@ describe('Register', () => {
     })
     await wrapper.find('input[id="register-email"]').setValue('user@example.com')
     await wrapper.find('form').trigger('submit.prevent')
+    await flushPromises()
     expect(wrapper.find('form').exists()).toBe(false)
     expect(wrapper.text()).toMatch(/✓|Gracias|Thanks|Gràcies/)
   })

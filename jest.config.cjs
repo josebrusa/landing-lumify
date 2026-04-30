@@ -15,6 +15,9 @@ module.exports = {
     '**/*.test.vue',
   ],
   moduleNameMapper: {
+    '^@vue/test-utils$':
+      '<rootDir>/node_modules/@vue/test-utils/dist/vue-test-utils.cjs.js',
+    '^@/api/client$': '<rootDir>/tests/mocks/api-client.ts',
     '^(\\.{1,2}/.*)\\.js$': '$1',
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@phosphor-icons/vue$': '<rootDir>/tests/mocks/phosphor-icons-vue.js',
