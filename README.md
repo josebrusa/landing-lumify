@@ -13,13 +13,13 @@ El objetivo de este README es que cualquier desarrollador pueda:
 ## Requisitos previos
 
 - **Node.js** ≥ 18 (recomendado usar `nvm`).
-- **npm** (incluido con Node).
+- **pnpm** (recomendado; vía Corepack).
 
 Comprueba tu versión:
 
 ```bash
 node -v
-npm -v
+pnpm -v
 ```
 
 ---
@@ -31,10 +31,9 @@ Clona el repositorio e instala las dependencias:
 ```bash
 git clone <URL_DEL_REPO>
 cd lumify
-npm install
+corepack enable
+pnpm install
 ```
-
-> El proyecto usa un `package-lock.json`, por lo que se recomienda **mantener npm** como gestor por defecto.
 
 Copia la configuración de entorno de ejemplo y apunta al backend:
 
@@ -45,6 +44,40 @@ cp .env.example .env
 | Variable | Descripción |
 |----------|-------------|
 | `VITE_API_BASE_URL` | Origen del API NestJS **sin** `/api` al final (ej. `http://localhost:3000`). Las peticiones van a `${VITE_API_BASE_URL}/api/...`. |
+
+---
+
+## Docker (opcional)
+
+- Requiere **Docker Desktop** (o Docker Engine) con `docker compose` disponible.
+
+- **Dev server (Vite)**:
+
+```bash
+docker compose up --build
+```
+
+Para levantar en segundo plano:
+
+```bash
+docker compose up -d --build
+```
+
+Abrirá `http://localhost:5173`.
+
+Para parar y limpiar:
+
+```bash
+docker compose down
+```
+
+- **Preview del build**:
+
+```bash
+docker compose --profile preview up --build
+```
+
+Abrirá `http://localhost:4173`.
 
 ---
 
@@ -70,7 +103,7 @@ Todos los comandos se ejecutan desde la raíz del proyecto (`lumify`).
 - **Desarrollo**:
 
   ```bash
-  npm run dev
+  pnpm run dev
   ```
 
   Levanta el servidor de desarrollo de Vite (por defecto en `http://localhost:5173`).
@@ -78,7 +111,7 @@ Todos los comandos se ejecutan desde la raíz del proyecto (`lumify`).
 - **Build de producción**:
 
   ```bash
-  npm run build
+  pnpm run build
   ```
 
   Genera la versión optimizada en la carpeta `dist/`.
@@ -86,7 +119,7 @@ Todos los comandos se ejecutan desde la raíz del proyecto (`lumify`).
 - **Previsualización del build**:
 
   ```bash
-  npm run preview
+  pnpm run preview
   ```
 
   Sirve el contenido de `dist/` para revisar el build localmente.
@@ -94,7 +127,7 @@ Todos los comandos se ejecutan desde la raíz del proyecto (`lumify`).
 - **Tests unitarios**:
 
   ```bash
-  npm run test
+  pnpm run test
   ```
 
   Ejecuta la suite de tests con **Jest** + **@vue/test-utils**.
@@ -102,7 +135,7 @@ Todos los comandos se ejecutan desde la raíz del proyecto (`lumify`).
 - **Tests en modo watch**:
 
   ```bash
-  npm run test:watch
+  pnpm run test:watch
   ```
 
 ---
@@ -163,7 +196,7 @@ Resumen de los directorios y archivos principales:
 1. **Arrancar el servidor de desarrollo**:
 
    ```bash
-   npm run dev
+   pnpm run dev
    ```
 
 2. **Editar secciones de la landing**:
@@ -180,7 +213,7 @@ Resumen de los directorios y archivos principales:
 
 5. **Añadir tests**:
    - Crear archivos `.spec.ts` o `.spec.vue` en las carpetas `__tests__` existentes o en nuevas.
-   - Ejecutar `npm run test` o `npm run test:watch` mientras desarrollas.
+    - Ejecutar `pnpm run test` o `pnpm run test:watch` mientras desarrollas.
 
 ---
 
@@ -261,8 +294,8 @@ Algunas líneas de trabajo habituales:
 
 Antes de abrir un PR o hacer un merge importante:
 
-1. Ejecuta `npm run build` para asegurar que el build pasa.
-2. Ejecuta `npm run test` para confirmar que los tests siguen en verde.
+1. Ejecuta `pnpm run build` para asegurar que el build pasa.
+2. Ejecuta `pnpm run test` para confirmar que los tests siguen en verde.
 
 ---
 
