@@ -16,6 +16,12 @@ pids
 # Dependency directories
 node_modules
 
+# Lockfiles (project uses pnpm)
+package-lock.json
+yarn.lock
+npm-shrinkwrap.json
+bun.lockb
+
 # Build output
 dist
 dist-ssr
@@ -44,3 +50,9 @@ coverage
 *.sln
 *.sw?
 backup/
+
+# Cursor / OpenCode agents and skills (installed locally, do not commit)
+.agents/
+.cursor/
+skills-lock.json
+skills.json
