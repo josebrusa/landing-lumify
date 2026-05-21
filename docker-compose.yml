@@ -3,7 +3,7 @@ services:
     build:
       context: .
       target: deps
-    command: pnpm run dev -- --host 0.0.0.0 --port 5173
+    command: ["pnpm", "run", "dev"]
     ports:
       - "5173:5173"
     volumes:
@@ -18,4 +18,6 @@ services:
       target: preview
     ports:
       - "4173:4173"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
     profiles: ["preview"]

@@ -24,6 +24,8 @@ function netlifyRequireViteApiBaseUrl(): Plugin {
   }
 }
 
+const dockerDev = process.env.CHOKIDAR_USEPOLLING === 'true'
+
 // https://vite.dev/config/
 export default defineConfig({
   resolve: {
@@ -35,4 +37,17 @@ export default defineConfig({
   build: {
     cssMinify: 'esbuild',
   },
+  server: dockerDev
+    ? {
+        host: '0.0.0.0',
+        port: 5173,
+        watch: { usePolling: true },
+      }
+    : undefined,
+  preview: dockerDev
+    ? {
+        host: '0.0.0.0',
+        port: 4173,
+      }
+    : undefined,
 })

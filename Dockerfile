@@ -22,4 +22,4 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 EXPOSE 4173
-CMD ["pnpm", "run", "preview", "--", "--host", "0.0.0.0", "--port", "4173"]
+CMD ["pnpm", "run", "preview"]
