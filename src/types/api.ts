@@ -27,11 +27,6 @@ export interface LoginBody {
   password: string
 }
 
-export interface RegisterBody {
-  email: string
-  password: string
-}
-
 export interface MeResponse {
   id: string
   email: string

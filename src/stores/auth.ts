@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { getAccessToken, setAccessToken } from '@/api/auth-token'
 import * as authService from '@/services/auth.service'
-import type { LoginBody, MeResponse, RegisterBody, UserRole } from '@/types/api'
+import type { LoginBody, MeResponse, UserRole } from '@/types/api'
 
 export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(null)
@@ -57,10 +57,6 @@ export const useAuthStore = defineStore('auth', () => {
     return authService.login(body)
   }
 
-  async function register(body: RegisterBody) {
-    return authService.register(body)
-  }
-
   async function verifyOtp(challengeId: string, code: string) {
     const { access_token } = await authService.verifyOtp({ challengeId, code })
     setSession(access_token)
@@ -96,7 +92,6 @@ export const useAuthStore = defineStore('auth', () => {
     logoutLocal,
     hydrateFromStorage,
     login,
-    register,
     verifyOtp,
     logout,
     fetchMe,

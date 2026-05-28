@@ -3,7 +3,6 @@ import type {
   LoginBody,
   LoginResponse,
   MeResponse,
-  RegisterBody,
   UpdateTwoFactorBody,
   UpdateTwoFactorResponse,
   VerifyOtpBody,
@@ -12,11 +11,6 @@ import type {
 
 export async function login(body: LoginBody): Promise<LoginResponse> {
   const { data } = await apiClient.post<LoginResponse>('/auth/login', body)
-  return data
-}
-
-export async function register(body: RegisterBody): Promise<LoginResponse> {
-  const { data } = await apiClient.post<LoginResponse>('/auth/register', body)
   return data
 }
 

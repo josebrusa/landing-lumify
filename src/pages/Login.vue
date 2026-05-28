@@ -104,9 +104,6 @@ async function submit() {
       </form>
 
       <div class="mt-6 flex flex-col gap-2">
-        <RouterLink to="/register" class="text-sm text-blue no-underline hover:underline">
-          {{ t('auth.login.create_account') }}
-        </RouterLink>
         <RouterLink to="/" class="text-sm text-blue no-underline hover:underline">
           ← {{ t('nav.home') }}
         </RouterLink>

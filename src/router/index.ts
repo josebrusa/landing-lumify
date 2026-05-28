@@ -23,12 +23,6 @@ const router = createRouter({
       meta: { guestFocused: true },
     },
     {
-      path: '/register',
-      name: 'register',
-      component: () => import('../pages/Register.vue'),
-      meta: { guestFocused: true },
-    },
-    {
       path: '/verify-otp',
       name: 'verify-otp',
       component: () => import('../pages/VerifyOtp.vue'),

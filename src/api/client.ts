@@ -39,7 +39,6 @@ apiClient.interceptors.response.use(
     const url = error.config?.url ?? ''
     const isPublicAuth =
       url.includes('/auth/login') ||
-      url.includes('/auth/register') ||
       url.includes('/auth/verify-otp')
     if (status === 401 && !isPublicAuth && getAccessToken()) {
       setAccessToken(null)
