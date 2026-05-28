@@ -69,14 +69,18 @@ export interface HttpErrorBody {
 
 /** Public + admin leads API (camelCase DTOs). */
 export type LeadInterestType = 'pim_service' | 'pim_training'
-export type LeadStatus = 'new' | 'answered'
+export type LeadStatus = 'new' | 'in_progress' | 'answered' | 'closed'
 export type LeadEmailDelivery = 'queued' | 'sent' | 'failed'
+export type LeadClosedReason = 'won' | 'lost' | 'no_fit' | 'spam' | 'other'
 
 export interface CreateLeadBody {
+  name?: string
   company?: string
+  phone?: string
   email: string
+  message?: string
   interestType: LeadInterestType
-  sourcePage: 'home' | 'training'
+  sourcePage: string
   sourceSection: string
   sourceCardId: string
   sourceCta: string
@@ -96,26 +100,37 @@ export interface LeadAnswer {
 
 export interface LeadItem {
   id: string
-  company: string
+  name: string | null
+  company: string | null
+  phone: string | null
   email: string
+  message: string | null
   interestType: LeadInterestType
-  sourcePage: 'home' | 'training'
+  sourcePage: string
   sourceSection: string
   sourceCardId: string
   sourceCta: string
   status: LeadStatus
   createdAt: string
+  seenAt: string | null
   answeredAt: string | null
+  closedAt: string | null
+  archivedAt: string | null
+  deletedAt: string | null
+  closedReason: LeadClosedReason | null
   answer: LeadAnswer | null
 }
 
 export interface ListLeadsQuery {
   interestType?: LeadInterestType
   status?: LeadStatus
+  archived?: boolean
+  deleted?: boolean
+  seen?: 'seen' | 'unseen'
   search?: string
   page?: number
   limit?: number
-  sortBy?: 'createdAt' | 'answeredAt'
+  sortBy?: 'createdAt' | 'seenAt' | 'answeredAt'
   sortDir?: 'asc' | 'desc'
 }
 
@@ -126,7 +141,9 @@ export interface ListLeadsResponse {
 
 export interface LeadsSummaryBucket {
   new: number
+  inProgress: number
   answered: number
+  closed: number
   all: number
 }
 
@@ -134,4 +151,42 @@ export interface LeadsSummaryResponse {
   service: LeadsSummaryBucket
   training: LeadsSummaryBucket
   totals: LeadsSummaryBucket
+}
+
+export interface LeadsKpisQuery {
+  from: string // YYYY-MM-DD
+  to: string // YYYY-MM-DD
+  tz: string
+}
+
+export interface LeadsKpisResponse {
+  totals: {
+    created: number
+    unseen: number
+    inProgress: number
+    answered: number
+    closed: number
+    archived: number
+  }
+  responseTime: {
+    answeredCount: number
+    avgMinutes: number | null
+    medianMinutes: number | null
+    p90Minutes: number | null
+  }
+  byInterestType: Array<{ interestType: LeadInterestType; created: number; answered: number }>
+}
+
+export interface LeadsTimeseriesQuery extends LeadsKpisQuery {
+  interval: 'day'
+}
+
+export interface LeadsTimeseriesResponse {
+  points: Array<{
+    date: string // YYYY-MM-DD
+    created: number
+    seen: number
+    answered: number
+    closed: number
+  }>
 }

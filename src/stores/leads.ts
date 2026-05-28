@@ -4,9 +4,12 @@ import type { AxiosError } from 'axios'
 import * as leadsService from '@/services/leads.service'
 import type {
   HttpErrorBody,
+  LeadClosedReason,
   LeadInterestType,
   LeadItem,
+  LeadsKpisResponse,
   LeadsSummaryResponse,
+  LeadsTimeseriesResponse,
   ListLeadsQuery,
 } from '@/types/api'
 
@@ -28,11 +31,18 @@ interface LeadIntentFallback {
   sourceCta?: string
 }
 
-export type AdminTableFilter = 'all' | 'new' | 'answered'
+export type AdminLeadsTab = 'inbox' | 'history'
+export type AdminLeadsSeenFilter = 'all' | 'unseen' | 'seen'
 
-export interface AdminTableState {
-  filter: AdminTableFilter
-  sortBy: 'createdAt' | 'answeredAt'
+export type AdminLeadsStatusFilter = 'all' | 'new' | 'in_progress' | 'answered' | 'closed'
+
+export interface AdminLeadsTableState {
+  tab: AdminLeadsTab
+  interest: 'all' | LeadInterestType
+  status: AdminLeadsStatusFilter
+  seen: AdminLeadsSeenFilter
+  search: string
+  sortBy: 'createdAt' | 'seenAt' | 'answeredAt'
   sortDir: 'asc' | 'desc'
   page: number
   limit: number
@@ -76,9 +86,13 @@ function formatHttpError(err: unknown): string {
   return 'Request failed'
 }
 
-function initialTableState(): AdminTableState {
+function initialTableState(): AdminLeadsTableState {
   return {
-    filter: 'new',
+    tab: 'inbox',
+    interest: 'all',
+    status: 'all',
+    seen: 'all',
+    search: '',
     sortBy: 'createdAt',
     sortDir: 'desc',
     page: 1,
@@ -93,8 +107,7 @@ function initialTableState(): AdminTableState {
 export const useLeadsStore = defineStore('leads', () => {
   const currentIntent = ref<LeadIntent | null>(null)
 
-  const serviceTable = reactive<AdminTableState>(initialTableState())
-  const trainingTable = reactive<AdminTableState>(initialTableState())
+  const adminTable = reactive<AdminLeadsTableState>(initialTableState())
 
   const summary = ref<LeadsSummaryResponse | null>(null)
   const summaryLoading = ref(false)
@@ -103,6 +116,14 @@ export const useLeadsStore = defineStore('leads', () => {
   const leadDetail = ref<LeadItem | null>(null)
   const leadDetailLoading = ref(false)
   const leadDetailError = ref<string | null>(null)
+
+  const kpis = ref<LeadsKpisResponse | null>(null)
+  const kpisLoading = ref(false)
+  const kpisError = ref<string | null>(null)
+
+  const timeseries = ref<LeadsTimeseriesResponse | null>(null)
+  const timeseriesLoading = ref(false)
+  const timeseriesError = ref<string | null>(null)
 
   const createLeadSubmitting = ref(false)
   const createLeadError = ref<string | null>(null)
@@ -164,25 +185,32 @@ export const useLeadsStore = defineStore('leads', () => {
     }
   }
 
-  function tableInterestType(key: 'service' | 'training'): ListLeadsQuery['interestType'] {
-    return key === 'service' ? 'pim_service' : 'pim_training'
-  }
-
-  async function refreshAdminTable(key: 'service' | 'training') {
-    const table = key === 'service' ? serviceTable : trainingTable
+  async function refreshAdminTable() {
+    const table = adminTable
     table.loading = true
     table.error = null
     try {
       const query: ListLeadsQuery = {
-        interestType: tableInterestType(key),
+        ...(table.interest !== 'all' ? { interestType: table.interest } : {}),
         page: table.page,
         limit: table.limit,
         sortBy: table.sortBy,
         sortDir: table.sortDir,
       }
-      if (table.filter !== 'all') {
-        query.status = table.filter === 'new' ? 'new' : 'answered'
+
+      if (table.tab === 'inbox') {
+        query.archived = false
+        query.deleted = false
+      } else {
+        query.archived = true
+        query.deleted = false
       }
+
+      if (table.status !== 'all') query.status = table.status
+      if (table.seen === 'seen') query.seen = 'seen'
+      if (table.seen === 'unseen') query.seen = 'unseen'
+      if (table.search.trim()) query.search = table.search
+
       const res = await leadsService.listAdminLeads(query)
       table.items = res.items
       table.total = res.total
@@ -222,40 +250,96 @@ export const useLeadsStore = defineStore('leads', () => {
     }
   }
 
-  function setServiceFilter(filter: AdminTableFilter) {
-    serviceTable.filter = filter
-    serviceTable.page = 1
-    void refreshAdminTable('service')
+  async function fetchKpis(payload: { from: string; to: string; tz: string }) {
+    kpisLoading.value = true
+    kpisError.value = null
+    try {
+      kpis.value = await leadsService.getAdminLeadsKpis(payload)
+    } catch (e) {
+      kpisError.value = formatHttpError(e)
+      kpis.value = null
+    } finally {
+      kpisLoading.value = false
+    }
   }
 
-  function setTrainingFilter(filter: AdminTableFilter) {
-    trainingTable.filter = filter
-    trainingTable.page = 1
-    void refreshAdminTable('training')
+  async function fetchTimeseries(payload: { from: string; to: string; tz: string; interval: 'day' }) {
+    timeseriesLoading.value = true
+    timeseriesError.value = null
+    try {
+      timeseries.value = await leadsService.getAdminLeadsTimeseries(payload)
+    } catch (e) {
+      timeseriesError.value = formatHttpError(e)
+      timeseries.value = null
+    } finally {
+      timeseriesLoading.value = false
+    }
   }
 
-  function setServiceSort(sortBy: 'createdAt' | 'answeredAt', sortDir: 'asc' | 'desc') {
-    serviceTable.sortBy = sortBy
-    serviceTable.sortDir = sortDir
-    serviceTable.page = 1
-    void refreshAdminTable('service')
+  function setAdminTab(tab: AdminLeadsTab) {
+    adminTable.tab = tab
+    adminTable.page = 1
+    void refreshAdminTable()
   }
 
-  function setTrainingSort(sortBy: 'createdAt' | 'answeredAt', sortDir: 'asc' | 'desc') {
-    trainingTable.sortBy = sortBy
-    trainingTable.sortDir = sortDir
-    trainingTable.page = 1
-    void refreshAdminTable('training')
+  function setAdminInterest(interest: AdminLeadsTableState['interest']) {
+    adminTable.interest = interest
+    adminTable.page = 1
+    void refreshAdminTable()
   }
 
-  function setServicePage(page: number) {
-    serviceTable.page = Math.max(1, page)
-    void refreshAdminTable('service')
+  function setAdminStatus(status: AdminLeadsStatusFilter) {
+    adminTable.status = status
+    adminTable.page = 1
+    void refreshAdminTable()
   }
 
-  function setTrainingPage(page: number) {
-    trainingTable.page = Math.max(1, page)
-    void refreshAdminTable('training')
+  function setAdminSeen(seen: AdminLeadsSeenFilter) {
+    adminTable.seen = seen
+    adminTable.page = 1
+    void refreshAdminTable()
+  }
+
+  function setAdminSearch(search: string) {
+    adminTable.search = search
+    adminTable.page = 1
+    void refreshAdminTable()
+  }
+
+  function setAdminSort(sortBy: AdminLeadsTableState['sortBy'], sortDir: 'asc' | 'desc') {
+    adminTable.sortBy = sortBy
+    adminTable.sortDir = sortDir
+    adminTable.page = 1
+    void refreshAdminTable()
+  }
+
+  function setAdminPage(page: number) {
+    adminTable.page = Math.max(1, page)
+    void refreshAdminTable()
+  }
+
+  async function startLead(id: string) {
+    await leadsService.startAdminLead(id)
+  }
+
+  async function replyLead(id: string, message: string) {
+    await leadsService.replyAdminLead(id, { message })
+  }
+
+  async function closeLead(id: string, reason: LeadClosedReason) {
+    await leadsService.closeAdminLead(id, { reason })
+  }
+
+  async function archiveLead(id: string) {
+    await leadsService.archiveAdminLead(id)
+  }
+
+  async function unarchiveLead(id: string) {
+    await leadsService.unarchiveAdminLead(id)
+  }
+
+  async function deleteLead(id: string) {
+    await leadsService.deleteAdminLead(id)
   }
 
   return {
@@ -264,15 +348,15 @@ export const useLeadsStore = defineStore('leads', () => {
     createLead,
     createLeadSubmitting,
     createLeadError,
-    serviceTable,
-    trainingTable,
+    adminTable,
     refreshAdminTable,
-    setServiceFilter,
-    setTrainingFilter,
-    setServiceSort,
-    setTrainingSort,
-    setServicePage,
-    setTrainingPage,
+    setAdminTab,
+    setAdminInterest,
+    setAdminStatus,
+    setAdminSeen,
+    setAdminSearch,
+    setAdminSort,
+    setAdminPage,
     summary,
     summaryLoading,
     summaryError,
@@ -281,5 +365,19 @@ export const useLeadsStore = defineStore('leads', () => {
     leadDetailLoading,
     leadDetailError,
     fetchLeadDetail,
+    kpis,
+    kpisLoading,
+    kpisError,
+    fetchKpis,
+    timeseries,
+    timeseriesLoading,
+    timeseriesError,
+    fetchTimeseries,
+    startLead,
+    replyLead,
+    closeLead,
+    archiveLead,
+    unarchiveLead,
+    deleteLead,
   }
 })
