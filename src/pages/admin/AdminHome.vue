@@ -4,6 +4,12 @@ import { useRouter } from 'vue-router'
 import { useI18n } from '@/composables/useI18n'
 import { useLeadsStore } from '@/stores/leads'
 import type { LeadInterestType, LeadStatus } from '@/types/api'
+import {
+  leadCardLabelKey,
+  leadCtaLabelKey,
+  leadSectionLabelKey,
+  resolveLeadLabel,
+} from '@/data/leadAttribution'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -18,6 +24,20 @@ function formatDate(iso: string) {
 
 function openLeadDetail(leadId: string) {
   router.push({ name: 'admin-lead-detail', params: { id: leadId } })
+}
+
+function interestLabel(type: LeadInterestType) {
+  return resolveLeadLabel(t, `lead.interest.${type}`, type)
+}
+
+function cardLabel(cardId: string) {
+  return resolveLeadLabel(t, leadCardLabelKey(cardId), cardId)
+}
+
+function sectionCtaLine(section: string, cta: string) {
+  const sectionLabel = resolveLeadLabel(t, leadSectionLabelKey(section), section)
+  const ctaLabel = resolveLeadLabel(t, leadCtaLabelKey(cta), cta)
+  return `${sectionLabel} · ${ctaLabel}`
 }
 
 function formatYmd(d: Date) {
@@ -252,6 +272,7 @@ watch([from, to, tz], () => {
               <option value="all">{{ t('admin.leads.interest_all') }}</option>
               <option value="pim_service">{{ t('admin.leads.interest_service') }}</option>
               <option value="pim_training">{{ t('admin.leads.interest_training') }}</option>
+              <option value="logistics_service">{{ t('admin.leads.interest_logistics') }}</option>
             </select>
           </label>
 
@@ -345,7 +366,11 @@ watch([from, to, tz], () => {
                  <td class="py-3 pr-4">{{ item.company || '-' }}</td>
                  <td class="py-3 pr-4">{{ item.email }}</td>
                  <td class="py-3 pr-4">
-                   {{ item.sourcePage }} / {{ item.sourceSection }} / {{ item.sourceCardId }}
+                   <div class="flex flex-col gap-0.5">
+                     <span class="font-medium text-text">{{ cardLabel(item.sourceCardId) }}</span>
+                     <span class="text-xs text-text-muted">{{ sectionCtaLine(item.sourceSection, item.sourceCta) }}</span>
+                     <span class="text-[11px] text-text-muted/80">{{ interestLabel(item.interestType) }}</span>
+                   </div>
                  </td>
                  <td class="py-3 pr-4">{{ formatDate(item.createdAt) }}</td>
                 <td class="py-3 pr-4">

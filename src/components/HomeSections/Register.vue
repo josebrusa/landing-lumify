@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from '../../composables/useI18n'
+import { useLeadsStore } from '../../stores/leads'
 import { PhClipboard, PhChartBar, PhTarget } from '@phosphor-icons/vue'
 
 const { t } = useI18n()
+const leads = useLeadsStore()
 
-const company  = ref('')
-const email    = ref('')
+const company = ref('')
+const email = ref('')
 const submitted = ref(false)
-const submitting = ref(false)
-const submitError = ref(false)
-const errors   = ref<{ email?: string }>({})
+const errors = ref<{ email?: string }>({})
 
 const perks = [
   { key: 'reg.p1', icon: PhClipboard },
@@ -21,7 +21,7 @@ const perks = [
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function validate(): boolean {
-  const next: { email?: string } = {}
+  const next: { company?: string; email?: string } = {}
   if (!email.value.trim()) {
     next.email = t('reg.error_required')
   } else if (!emailRegex.test(email.value.trim())) {
@@ -33,35 +33,18 @@ function validate(): boolean {
 
 async function onSubmit() {
   if (!validate()) return
-
-  submitting.value = true
-  submitError.value = false
-
   try {
-    // Netlify Forms — envío vía fetch, sin backend propio
-    const body = new URLSearchParams({
-      'form-name': 'contacto-lumify',
-      'empresa':   company.value.trim(),
-      'email':     email.value.trim(),
-      'bot-field': '',           // honeypot vacío = humano
+    await leads.createLead({
+      company: company.value,
+      email: email.value,
+      fallbackInterest: 'pim_service',
     })
-
-    const res = await fetch('/', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body:    body.toString(),
-    })
-
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-
     submitted.value = true
-    company.value   = ''
-    email.value     = ''
-    errors.value    = {}
+    company.value = ''
+    email.value = ''
+    errors.value = {}
   } catch {
-    submitError.value = true
-  } finally {
-    submitting.value = false
+    // createLeadError set in store; optional UI below
   }
 }
 
@@ -104,21 +87,14 @@ function clearError(field: 'email') {
           {{ t(p.key) }}
         </div>
       </div>
-
-      <!-- Error de envío -->
-      <p v-if="submitError" class="mb-4 text-sm text-red-300 reveal" role="alert">
-        {{ t('reg.lead_submit_error') }}
+      <p v-if="leads.createLeadError" class="mb-4 text-sm text-red-300 reveal" role="alert">
+        {{ leads.createLeadError || t('reg.lead_submit_error') }}
       </p>
-
-      <!-- Formulario -->
       <form
         v-if="!submitted"
         class="flex gap-3 flex-wrap justify-center reveal"
         @submit.prevent="onSubmit"
       >
-        <!-- Honeypot anti-spam (oculto para humanos) -->
-        <input type="text" name="bot-field" class="hidden" tabindex="-1" autocomplete="off" />
-
         <div class="flex-1 min-w-[240px] max-w-[340px] flex flex-col gap-1">
           <label for="register-company" class="sr-only">{{ t('reg.company') }}</label>
           <input
@@ -156,18 +132,15 @@ function clearError(field: 'email') {
         </div>
         <button
           type="submit"
-          :disabled="submitting"
+          :disabled="leads.createLeadSubmitting"
           class="min-h-[44px] inline-flex items-center justify-center py-4 px-8 rounded-full bg-blue text-white border-none cursor-pointer font-bold text-[0.95rem] font-sans transition-all hover:bg-[#5aaeff] hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(60,157,255,0.4)] whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {{ submitting ? t('reg.submitting') : t('reg.btn') }}
+          {{ leads.createLeadSubmitting ? t('reg.submitting') : t('reg.btn') }}
         </button>
       </form>
-
-      <!-- Mensaje de éxito -->
       <p v-else class="text-white/90 font-medium reveal">
         ✓ {{ t('reg.success') }}
       </p>
-
       <p v-if="!submitted" class="mt-4 text-[0.8rem] text-white/40 reveal">
         {{ t('reg.note') }}
       </p>

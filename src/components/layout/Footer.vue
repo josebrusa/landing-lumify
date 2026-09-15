@@ -4,20 +4,34 @@ import { RouterLink } from 'vue-router'
 import { useI18n } from '../../composables/useI18n'
 import { useModals } from '../../composables/useModals'
 import { useLeadsStore } from '../../stores/leads'
+import { attributionByModalKey, pricingAttribution } from '../../data/leadAttribution'
+import type { ModalKey } from '../../data/modalData'
 
 const { t } = useI18n()
 const { openModal, openPricingModal } = useModals()
 const route = useRoute()
 const leads = useLeadsStore()
 
+function openModalWithIntent(key: ModalKey) {
+  const attr = attributionByModalKey[key]
+  leads.registerIntent({
+    interestType: 'pim_service',
+    sourcePage: 'home',
+    sourceSection: attr.sourceSection,
+    sourceCardId: attr.sourceCardId,
+    sourceCta: attr.sourceCta,
+  })
+  openModal(key)
+}
+
 function openPricingFromFooter() {
   const isTraining = route.path.startsWith('/training')
   leads.registerIntent({
     interestType: isTraining ? 'pim_training' : 'pim_service',
     sourcePage: isTraining ? 'training' : 'home',
-    sourceSection: 'footer',
-    sourceCardId: 'pricing_cta',
-    sourceCta: 'footer_pricing',
+    sourceSection: pricingAttribution.sourceSection,
+    sourceCardId: pricingAttribution.sourceCardId,
+    sourceCta: pricingAttribution.sourceCta,
   })
   openPricingModal()
 }
@@ -35,19 +49,19 @@ function openPricingFromFooter() {
       <div class="footer-links">
         <h5 class="text-white text-sm font-semibold mb-3.5 tracking-wide">{{ t('foot.s1') }}</h5>
         <ul class="list-none">
-          <li class="mb-2"><button type="button" class="min-h-[44px] flex items-center w-full bg-transparent border-none py-2.5 pr-0 pl-0 text-left text-white/45 no-underline text-sm transition-colors hover:text-blue cursor-pointer font-inherit" @click="openModal('assessment')">{{ t('foot.s1l1') }}</button></li>
-          <li class="mb-2"><button type="button" class="min-h-[44px] flex items-center w-full bg-transparent border-none py-2.5 pr-0 pl-0 text-left text-white/45 no-underline text-sm transition-colors hover:text-blue cursor-pointer font-inherit" @click="openModal('modelo')">{{ t('foot.s1l2') }}</button></li>
-          <li class="mb-2"><button type="button" class="min-h-[44px] flex items-center w-full bg-transparent border-none py-2.5 pr-0 pl-0 text-left text-white/45 no-underline text-sm transition-colors hover:text-blue cursor-pointer font-inherit" @click="openModal('implementacion')">{{ t('foot.s1l3') }}</button></li>
-          <li class="mb-2"><button type="button" class="min-h-[44px] flex items-center w-full bg-transparent border-none py-2.5 pr-0 pl-0 text-left text-white/45 no-underline text-sm transition-colors hover:text-blue cursor-pointer font-inherit" @click="openModal('migracion')">{{ t('foot.s1l4') }}</button></li>
+          <li class="mb-2"><button type="button" class="min-h-[44px] flex items-center w-full bg-transparent border-none py-2.5 pr-0 pl-0 text-left text-white/45 no-underline text-sm transition-colors hover:text-blue cursor-pointer font-inherit" @click="openModalWithIntent('assessment')">{{ t('foot.s1l1') }}</button></li>
+          <li class="mb-2"><button type="button" class="min-h-[44px] flex items-center w-full bg-transparent border-none py-2.5 pr-0 pl-0 text-left text-white/45 no-underline text-sm transition-colors hover:text-blue cursor-pointer font-inherit" @click="openModalWithIntent('modelo')">{{ t('foot.s1l2') }}</button></li>
+          <li class="mb-2"><button type="button" class="min-h-[44px] flex items-center w-full bg-transparent border-none py-2.5 pr-0 pl-0 text-left text-white/45 no-underline text-sm transition-colors hover:text-blue cursor-pointer font-inherit" @click="openModalWithIntent('implementacion')">{{ t('foot.s1l3') }}</button></li>
+          <li class="mb-2"><button type="button" class="min-h-[44px] flex items-center w-full bg-transparent border-none py-2.5 pr-0 pl-0 text-left text-white/45 no-underline text-sm transition-colors hover:text-blue cursor-pointer font-inherit" @click="openModalWithIntent('migracion')">{{ t('foot.s1l4') }}</button></li>
         </ul>
       </div>
       <div class="footer-links">
         <h5 class="text-white text-sm font-semibold mb-3.5 tracking-wide">{{ t('foot.s2') }}</h5>
         <ul class="list-none">
-          <li class="mb-2"><button type="button" class="min-h-[44px] flex items-center w-full bg-transparent border-none py-2.5 pr-0 pl-0 text-left text-white/45 no-underline text-sm transition-colors hover:text-blue cursor-pointer font-inherit" @click="openModal('pack-datos')">{{ t('foot.s2l1') }}</button></li>
-          <li class="mb-2"><button type="button" class="min-h-[44px] flex items-center w-full bg-transparent border-none py-2.5 pr-0 pl-0 text-left text-white/45 no-underline text-sm transition-colors hover:text-blue cursor-pointer font-inherit" @click="openModal('pack-omni')">{{ t('foot.s2l2') }}</button></li>
-          <li class="mb-2"><button type="button" class="min-h-[44px] flex items-center w-full bg-transparent border-none py-2.5 pr-0 pl-0 text-left text-white/45 no-underline text-sm transition-colors hover:text-blue cursor-pointer font-inherit" @click="openModal('pack-beauty')">{{ t('foot.s2l3') }}</button></li>
-          <li class="mb-2"><button type="button" class="min-h-[44px] flex items-center w-full bg-transparent border-none py-2.5 pr-0 pl-0 text-left text-white/45 no-underline text-sm transition-colors hover:text-blue cursor-pointer font-inherit" @click="openModal('pack-health')">{{ t('foot.s2l4') }}</button></li>
+          <li class="mb-2"><button type="button" class="min-h-[44px] flex items-center w-full bg-transparent border-none py-2.5 pr-0 pl-0 text-left text-white/45 no-underline text-sm transition-colors hover:text-blue cursor-pointer font-inherit" @click="openModalWithIntent('pack-datos')">{{ t('foot.s2l1') }}</button></li>
+          <li class="mb-2"><button type="button" class="min-h-[44px] flex items-center w-full bg-transparent border-none py-2.5 pr-0 pl-0 text-left text-white/45 no-underline text-sm transition-colors hover:text-blue cursor-pointer font-inherit" @click="openModalWithIntent('pack-omni')">{{ t('foot.s2l2') }}</button></li>
+          <li class="mb-2"><button type="button" class="min-h-[44px] flex items-center w-full bg-transparent border-none py-2.5 pr-0 pl-0 text-left text-white/45 no-underline text-sm transition-colors hover:text-blue cursor-pointer font-inherit" @click="openModalWithIntent('pack-beauty')">{{ t('foot.s2l3') }}</button></li>
+          <li class="mb-2"><button type="button" class="min-h-[44px] flex items-center w-full bg-transparent border-none py-2.5 pr-0 pl-0 text-left text-white/45 no-underline text-sm transition-colors hover:text-blue cursor-pointer font-inherit" @click="openModalWithIntent('pack-health')">{{ t('foot.s2l4') }}</button></li>
         </ul>
       </div>
       <div class="footer-links">
@@ -63,9 +77,6 @@ function openPricingFromFooter() {
     <div class="border-t border-white/10 pt-6 text-xs flex justify-between flex-wrap gap-3">
       <span>{{ t('foot.copy') }}</span>
       <span>Cataluña, España 🇪🇸</span>
-    </div>
-      <div class="mt-4 pt-4 border-t border-white/8 flex justify-center">
-      <a href="/" class="text-white/25 text-xs no-underline hover:text-white/50 transition-colors">← Lumify Group</a>
     </div>
   </footer>
 </template>

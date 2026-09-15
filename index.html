@@ -21,16 +21,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
   </head>
   <body>
-    <!--
-      Formulario oculto para Netlify Forms (detección en build time).
-      El SPA lo envía vía JavaScript desde Register.vue en /tech.
-    -->
-    <form name="contacto-lumify" netlify netlify-honeypot="bot-field" hidden>
-      <input type="text"  name="empresa" />
-      <input type="email" name="email" />
-      <input type="text"  name="bot-field" />
-    </form>
-
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>

@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { useI18n } from '../../composables/useI18n'
+import { useModals } from '../../composables/useModals'
 import { useLeadsStore } from '../../stores/leads'
+import { attributionByModalKey } from '../../data/leadAttribution'
 
 const { t } = useI18n()
+const { openModal } = useModals()
 const leads = useLeadsStore()
 
 const retainers = [
@@ -12,14 +15,15 @@ const retainers = [
 ]
 
 function handleRetainerInterest(retainerKey: (typeof retainers)[number]['key']) {
+  const attr = attributionByModalKey[retainerKey]
   leads.registerIntent({
     interestType: 'pim_service',
     sourcePage: 'home',
-    sourceSection: 'retainers',
-    sourceCardId: retainerKey,
-    sourceCta: 'retainer_card',
+    sourceSection: attr.sourceSection,
+    sourceCardId: attr.sourceCardId,
+    sourceCta: attr.sourceCta,
   })
-  document.getElementById('registro')?.scrollIntoView({ behavior: 'smooth' })
+  openModal(retainerKey)
 }
 </script>
 
