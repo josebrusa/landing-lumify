@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import Nav from '../components/layout/Nav.vue'
+import AppNav from '../components/layout/AppNav.vue'
 import Footer from '../components/layout/Footer.vue'
 import TrainingHero from '../components/TrainingSections/TrainingHero.vue'
 import TrainingPrograms from '../components/TrainingSections/TrainingPrograms.vue'
@@ -18,7 +18,7 @@ useScrollReveal('.reveal')
 
 <template>
   <div class="min-h-screen">
-    <Nav />
+    <AppNav />
 
     <main>
       <TrainingHero />

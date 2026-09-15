@@ -2,6 +2,7 @@
 import { useI18n } from '../../composables/useI18n'
 import { useModals } from '../../composables/useModals'
 import { useLeadsStore } from '../../stores/leads'
+import { attributionByModalKey } from '../../data/leadAttribution'
 
 const { t } = useI18n()
 const { openModal } = useModals()
@@ -15,12 +16,13 @@ const packs = [
 ]
 
 function handlePackInterest(packKey: (typeof packs)[number]['key']) {
+  const attr = attributionByModalKey[packKey]
   leads.registerIntent({
     interestType: 'pim_service',
     sourcePage: 'home',
-    sourceSection: 'packs',
-    sourceCardId: packKey,
-    sourceCta: 'pack_card',
+    sourceSection: attr.sourceSection,
+    sourceCardId: attr.sourceCardId,
+    sourceCta: attr.sourceCta,
   })
   openModal(packKey)
 }

@@ -2,6 +2,7 @@
 import { useI18n } from '../../composables/useI18n'
 import { useModals } from '../../composables/useModals'
 import { useLeadsStore } from '../../stores/leads'
+import { attributionByModalKey } from '../../data/leadAttribution'
 import { PhMagnifyingGlass, PhFolder, PhGear, PhRocketLaunch } from '@phosphor-icons/vue'
 
 const { t } = useI18n()
@@ -16,12 +17,13 @@ const services = [
 ]
 
 function handleServiceInterest(serviceKey: (typeof services)[number]['key']) {
+  const attr = attributionByModalKey[serviceKey]
   leads.registerIntent({
     interestType: 'pim_service',
     sourcePage: 'home',
-    sourceSection: 'services',
-    sourceCardId: serviceKey,
-    sourceCta: 'service_card',
+    sourceSection: attr.sourceSection,
+    sourceCardId: attr.sourceCardId,
+    sourceCta: attr.sourceCta,
   })
   openModal(serviceKey)
 }

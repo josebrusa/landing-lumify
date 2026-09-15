@@ -17,7 +17,7 @@ export type { LeadInterestType } from '@/types/api'
 
 export interface LeadIntent {
   interestType: LeadInterestType
-  sourcePage: 'home' | 'training'
+  sourcePage: 'home' | 'training' | 'logistics'
   sourceSection: string
   sourceCardId: string
   sourceCta: string
@@ -59,7 +59,15 @@ function nowIso() {
 }
 
 function fallbackSourcePageByInterest(interestType: LeadInterestType): LeadIntent['sourcePage'] {
-  return interestType === 'pim_training' ? 'training' : 'home'
+  if (interestType === 'pim_training') return 'training'
+  if (interestType === 'logistics_service') return 'logistics'
+  return 'home'
+}
+
+function defaultSourceSection(sourcePage: LeadIntent['sourcePage']): string {
+  if (sourcePage === 'training') return 'training'
+  if (sourcePage === 'logistics') return 'logistics_contact'
+  return 'register'
 }
 
 function buildFallbackIntent(
@@ -67,7 +75,7 @@ function buildFallbackIntent(
   fallbackContext?: LeadIntentFallback,
 ): Omit<LeadIntent, 'capturedAt'> {
   const sourcePage = fallbackContext?.sourcePage ?? fallbackSourcePageByInterest(fallbackInterest)
-  const sourceSection = fallbackContext?.sourceSection ?? (sourcePage === 'training' ? 'training' : 'register')
+  const sourceSection = fallbackContext?.sourceSection ?? defaultSourceSection(sourcePage)
   return {
     interestType: fallbackInterest,
     sourcePage,

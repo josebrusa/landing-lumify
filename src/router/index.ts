@@ -1,21 +1,31 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from '../pages/Home.vue'
-import Training from '../pages/Training.vue'
+import GroupHome    from '../pages/GroupHome.vue'
+import Home        from '../pages/Home.vue'
+import LogisticsHome from '../pages/LogisticsHome.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    // ── Lumify Group (landing principal) ──
     {
       path: '/',
+      name: 'group-home',
+      component: GroupHome,
+    },
+    // ── Lumify Tech ──
+    {
+      path: '/tech',
       name: 'home',
       component: Home,
     },
+    // ── Lumify Logistics ──
     {
-      path: '/training',
-      name: 'training',
-      component: Training,
+      path: '/logistics',
+      name: 'logistics',
+      component: LogisticsHome,
     },
+    // ── Auth / Admin ──
     {
       path: '/login',
       name: 'login',
@@ -65,18 +75,15 @@ router.beforeEach(async (to) => {
     await auth.hydrateFromStorage()
   }
 
-  const needsAuth = to.matched.some((r) => r.meta.requiresAuth)
+  const needsAuth  = to.matched.some((r) => r.meta.requiresAuth)
   const needsAdmin = to.matched.some((r) => r.meta.requiresAdmin)
 
   if (needsAuth && !auth.isAuthenticated) {
-    return {
-      name: 'login',
-      query: { redirect: to.fullPath },
-    }
+    return { name: 'login', query: { redirect: to.fullPath } }
   }
 
   if (needsAdmin && !auth.hasRole('admin')) {
-    return { name: 'home' }
+    return { name: 'group-home' }
   }
 
   const guestFocused = to.matched.some((r) => r.meta.guestFocused)
@@ -86,7 +93,7 @@ router.beforeEach(async (to) => {
         ? to.query.redirect
         : undefined
     if (redirect) return redirect
-    return auth.hasRole('admin') ? '/admin' : '/'
+    return auth.hasRole('admin') ? '/admin' : '/tech'
   }
 
   return true

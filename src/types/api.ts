@@ -63,7 +63,7 @@ export interface HttpErrorBody {
 }
 
 /** Public + admin leads API (camelCase DTOs). */
-export type LeadInterestType = 'pim_service' | 'pim_training'
+export type LeadInterestType = 'pim_service' | 'pim_training' | 'logistics_service'
 export type LeadStatus = 'new' | 'in_progress' | 'answered' | 'closed'
 export type LeadEmailDelivery = 'queued' | 'sent' | 'failed'
 export type LeadClosedReason = 'won' | 'lost' | 'no_fit' | 'spam' | 'other'

@@ -5,7 +5,13 @@ import { useI18n } from '@/composables/useI18n'
 import { useLeadsStore } from '@/stores/leads'
 import AdminModal from '@/components/admin/AdminModal.vue'
 import type { AxiosError } from 'axios'
-import type { LeadClosedReason, LeadEmailDelivery, LeadStatus, HttpErrorBody } from '@/types/api'
+import type { LeadClosedReason, LeadEmailDelivery, LeadInterestType, LeadStatus, HttpErrorBody } from '@/types/api'
+import {
+  leadCardLabelKey,
+  leadCtaLabelKey,
+  leadSectionLabelKey,
+  resolveLeadLabel,
+} from '@/data/leadAttribution'
 
 const route = useRoute()
 const router = useRouter()
@@ -21,6 +27,22 @@ const replyMessage = ref('')
 const closeReason = ref<LeadClosedReason>('other')
 const actionError = ref<string | null>(null)
 const actionLoading = ref(false)
+
+function interestLabel(type: LeadInterestType) {
+  return resolveLeadLabel(t, `lead.interest.${type}`, type)
+}
+
+function sectionLabel(section: string) {
+  return resolveLeadLabel(t, leadSectionLabelKey(section), section)
+}
+
+function cardLabel(cardId: string) {
+  return resolveLeadLabel(t, leadCardLabelKey(cardId), cardId)
+}
+
+function ctaLabel(cta: string) {
+  return resolveLeadLabel(t, leadCtaLabelKey(cta), cta)
+}
 
 watch(
   leadId,
@@ -211,8 +233,24 @@ function ackStatusClass(delivery: LeadEmailDelivery) {
           <strong>Mensaje:</strong> {{ lead.message }}
         </p>
         <p>
+          <strong>{{ t('admin.leads.interest') }}:</strong>
+          {{ interestLabel(lead.interestType) }}
+        </p>
+        <p>
+          <strong>{{ t('admin.leads.section') }}:</strong>
+          {{ sectionLabel(lead.sourceSection) }}
+        </p>
+        <p>
+          <strong>{{ t('admin.leads.card') }}:</strong>
+          {{ cardLabel(lead.sourceCardId) }}
+        </p>
+        <p>
+          <strong>{{ t('admin.leads.cta') }}:</strong>
+          {{ ctaLabel(lead.sourceCta) }}
+        </p>
+        <p>
           <strong>{{ t('admin.leads.origin') }}:</strong>
-          {{ lead.sourcePage }} / {{ lead.sourceSection }} / {{ lead.sourceCardId }} / {{ lead.sourceCta }}
+          {{ lead.sourcePage }}
         </p>
         <p>
           <strong>{{ t('admin.leads.received_at') }}:</strong> {{ formatDate(lead.createdAt) }}
