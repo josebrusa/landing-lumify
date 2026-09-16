@@ -32,7 +32,6 @@ export const logisticsEs: Record<string, string> = {
   'log.modal.submit': 'Enviar solicitud →',
   'log.modal.success': '¡Enviado! Revisa tu email pronto.',
   'log.modal.note': 'Usaremos tus datos solo para responder a esta solicitud.',
-  'log.foot.copy': '© 2025 Lumify Group SL. Todos los derechos reservados.',
 }
 
 export const logisticsCa: Record<string, string> = {
@@ -68,7 +67,6 @@ export const logisticsCa: Record<string, string> = {
   'log.modal.submit': 'Enviar sol·licitud →',
   'log.modal.success': 'Enviat! Revisa el teu email aviat.',
   'log.modal.note': 'Utilitzarem les teves dades només per respondre a aquesta sol·licitud.',
-  'log.foot.copy': '© 2025 Lumify Group SL. Tots els drets reservats.',
 }
 
 export const logisticsEn: Record<string, string> = {
@@ -104,5 +102,4 @@ export const logisticsEn: Record<string, string> = {
   'log.modal.submit': 'Send request →',
   'log.modal.success': 'Sent! Check your email soon.',
   'log.modal.note': 'We will only use your details to respond to this request.',
-  'log.foot.copy': '© 2025 Lumify Group SL. All rights reserved.',
 }

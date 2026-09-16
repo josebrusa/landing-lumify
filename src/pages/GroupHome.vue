@@ -152,14 +152,5 @@ const { t } = useI18n()
       </div>
     </section>
 
-    <!-- ── FOOTER ────────────────────────────────────────────── -->
-    <footer class="bg-gray-dark text-white/45 py-10 px-[5%] flex flex-col gap-4 items-center text-center border-t border-white/8">
-      <span class="font-heading text-lg font-extrabold text-white">
-        Lumify<span class="text-blue"> Group</span>
-      </span>
-      <p class="text-sm max-w-[300px] leading-relaxed">{{ t('group.foot.desc') }}</p>
-      <p class="text-xs text-white/30">{{ t('group.foot.copy') }}</p>
-    </footer>
-
   </div>
 </template>

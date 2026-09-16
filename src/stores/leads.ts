@@ -17,7 +17,7 @@ export type { LeadInterestType } from '@/types/api'
 
 export interface LeadIntent {
   interestType: LeadInterestType
-  sourcePage: 'home' | 'training' | 'logistics'
+  sourcePage: 'home' | 'training' | 'logistics' | 'group'
   sourceSection: string
   sourceCardId: string
   sourceCta: string

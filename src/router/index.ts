@@ -4,6 +4,15 @@ import Home        from '../pages/Home.vue'
 import LogisticsHome from '../pages/LogisticsHome.vue'
 import { useAuthStore } from '@/stores/auth'
 
+declare module 'vue-router' {
+  interface RouteMeta {
+    guestFocused?: boolean
+    requiresAuth?: boolean
+    requiresAdmin?: boolean
+    siteFooter?: boolean
+  }
+}
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -12,18 +21,21 @@ const router = createRouter({
       path: '/',
       name: 'group-home',
       component: GroupHome,
+      meta: { siteFooter: true },
     },
     // ── Lumify Tech ──
     {
       path: '/tech',
       name: 'home',
       component: Home,
+      meta: { siteFooter: true },
     },
     // ── Lumify Logistics ──
     {
       path: '/logistics',
       name: 'logistics',
       component: LogisticsHome,
+      meta: { siteFooter: true },
     },
     // ── Auth / Admin ──
     {

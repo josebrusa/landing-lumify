@@ -32,8 +32,6 @@ export const groupEs: Record<string, string> = {
   'group.div.legal.desc':
     'Servicios de gestoría para autónomos y empresas, junto con asesoramiento en derecho mercantil.',
   'group.div.legal.note': 'En desarrollo',
-  'group.foot.desc': 'Empresa familiar con múltiples líneas de negocio.',
-  'group.foot.copy': '© 2025 Lumify Group SL. Todos los derechos reservados.',
 }
 
 export const groupCa: Record<string, string> = {
@@ -69,8 +67,6 @@ export const groupCa: Record<string, string> = {
   'group.div.legal.desc':
     'Serveis de gestoria per a autònoms i empreses, juntament amb assessorament en dret mercantil.',
   'group.div.legal.note': 'En desenvolupament',
-  'group.foot.desc': 'Empresa familiar amb múltiples línies de negoci.',
-  'group.foot.copy': '© 2025 Lumify Group SL. Tots els drets reservats.',
 }
 
 export const groupEn: Record<string, string> = {
@@ -106,6 +102,4 @@ export const groupEn: Record<string, string> = {
   'group.div.legal.desc':
     'Accounting and administration services for freelancers and companies, plus commercial and business law advisory.',
   'group.div.legal.note': 'In development',
-  'group.foot.desc': 'Family business with multiple business lines.',
-  'group.foot.copy': '© 2025 Lumify Group SL. All rights reserved.',
 }

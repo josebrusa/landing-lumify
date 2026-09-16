@@ -206,12 +206,6 @@ async function onSubmit() {
       </div>
     </section>
 
-    <!-- ── FOOTER ────────────────────────────────────────────── -->
-    <footer class="bg-gray-dark text-white/45 py-10 px-[5%] flex flex-col gap-3 items-center text-center border-t border-white/8">
-      <span class="font-heading text-base font-bold text-white">Lumify<span class="text-blue"> Logistics</span></span>
-      <p class="text-xs text-white/25">{{ t('log.foot.copy') }}</p>
-    </footer>
-
     <!-- ── CONTACT MODAL ─────────────────────────────────────── -->
     <div
       v-show="isContactOpen"
