@@ -2,6 +2,7 @@ import { reactive, ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { AxiosError } from 'axios'
 import * as leadsService from '@/services/leads.service'
+import { useLocaleStore } from '@/stores/locale'
 import type {
   HttpErrorBody,
   LeadClosedReason,
@@ -175,6 +176,7 @@ export const useLeadsStore = defineStore('leads', () => {
     try {
       const intent = resolveIntent(payload.fallbackInterest, payload.fallbackContext)
       const companyTrim = payload.company.trim()
+      const localeStore = useLocaleStore()
       const res = await leadsService.createPublicLead({
         ...(companyTrim ? { company: companyTrim } : {}),
         email: payload.email.trim(),
@@ -183,6 +185,7 @@ export const useLeadsStore = defineStore('leads', () => {
         sourceSection: intent.sourceSection,
         sourceCardId: intent.sourceCardId,
         sourceCta: intent.sourceCta,
+        locale: localeStore.lang,
       })
       return res
     } catch (e) {

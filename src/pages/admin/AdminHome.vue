@@ -339,7 +339,6 @@ watch([from, to, tz], () => {
         <table class="min-w-full border-collapse text-sm">
           <thead>
             <tr class="border-b border-gray-light text-left text-text-muted">
-              <th class="py-2 pr-4">ID</th>
               <th class="py-2 pr-4">{{ t('admin.dashboard.company') }}</th>
               <th class="py-2 pr-4">{{ t('admin.dashboard.contact') }}</th>
               <th class="py-2 pr-4">{{ t('admin.leads.origin') }}</th>
@@ -352,7 +351,7 @@ watch([from, to, tz], () => {
           </thead>
           <tbody>
             <tr v-if="table.loading">
-              <td colspan="9" class="py-4 text-text-muted">{{ t('admin.leads.table_loading') }}</td>
+              <td colspan="8" class="py-4 text-text-muted">{{ t('admin.leads.table_loading') }}</td>
             </tr>
 
             <template v-else-if="table.items.length">
@@ -362,7 +361,6 @@ watch([from, to, tz], () => {
                 class="cursor-pointer border-b border-gray-light/70 text-text hover:bg-surface"
                 @click="openLeadDetail(item.id)"
               >
-                <td class="py-3 pr-4">{{ item.id }}</td>
                  <td class="py-3 pr-4">{{ item.company || '-' }}</td>
                  <td class="py-3 pr-4">{{ item.email }}</td>
                  <td class="py-3 pr-4">
@@ -402,7 +400,7 @@ watch([from, to, tz], () => {
             </template>
 
             <tr v-else>
-              <td colspan="9" class="py-4 text-text-muted">{{ t('admin.leads.empty_filtered') }}</td>
+              <td colspan="8" class="py-4 text-text-muted">{{ t('admin.leads.empty_filtered') }}</td>
             </tr>
           </tbody>
         </table>

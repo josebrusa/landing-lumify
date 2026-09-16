@@ -30,6 +30,18 @@ async function logout() {
           {{ t('admin.nav.dashboard') }}
         </RouterLink>
         <RouterLink
+          to="/admin/pipeline"
+          class="text-white/80 hover:text-blue no-underline [&.router-link-active]:text-blue"
+        >
+          {{ t('admin.nav.pipeline') }}
+        </RouterLink>
+        <RouterLink
+          to="/admin/calendar"
+          class="text-white/80 hover:text-blue no-underline [&.router-link-active]:text-blue"
+        >
+          {{ t('admin.nav.calendar') }}
+        </RouterLink>
+        <RouterLink
           to="/admin/settings"
           class="text-white/80 hover:text-blue no-underline [&.router-link-exact-active]:text-blue"
         >

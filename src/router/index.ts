@@ -37,6 +37,12 @@ const router = createRouter({
       component: LogisticsHome,
       meta: { siteFooter: true },
     },
+    {
+      path: '/book',
+      name: 'book-meeting',
+      component: () => import('../pages/BookMeeting.vue'),
+      meta: { siteFooter: true },
+    },
     // ── Auth / Admin ──
     {
       path: '/login',
@@ -59,6 +65,21 @@ const router = createRouter({
           path: '',
           name: 'admin-home',
           component: () => import('../pages/admin/AdminHome.vue'),
+        },
+        {
+          path: 'pipeline',
+          name: 'admin-pipeline',
+          component: () => import('../pages/admin/AdminPipeline.vue'),
+        },
+        {
+          path: 'opportunities/:id',
+          name: 'admin-opportunity-detail',
+          component: () => import('../pages/admin/AdminOpportunityDetail.vue'),
+        },
+        {
+          path: 'calendar',
+          name: 'admin-calendar',
+          component: () => import('../pages/admin/AdminCalendar.vue'),
         },
         {
           path: 'settings',

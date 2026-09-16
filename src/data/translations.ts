@@ -1,6 +1,7 @@
 import { trainingCa, trainingEn, trainingEs } from './trainingTranslations'
 import { groupCa, groupEn, groupEs } from './groupTranslations'
 import { logisticsCa, logisticsEn, logisticsEs } from './logisticsTranslations'
+import { crmCa, crmEn, crmEs } from './crmTranslations'
 
 export type Lang = 'es' | 'ca' | 'en'
 
@@ -375,6 +376,7 @@ export const translations: Record<Lang, TranslationsMap> = {
     ...groupEs,
     ...logisticsEs,
     ...trainingEs,
+    ...crmEs,
   },
   ca: {
     'nav.group': 'Grup',
@@ -745,6 +747,7 @@ export const translations: Record<Lang, TranslationsMap> = {
     ...groupCa,
     ...logisticsCa,
     ...trainingCa,
+    ...crmCa,
   },
   en: {
     'nav.group': 'Group',
@@ -1115,5 +1118,6 @@ export const translations: Record<Lang, TranslationsMap> = {
     ...groupEn,
     ...logisticsEn,
     ...trainingEn,
+    ...crmEn,
   },
 }

@@ -56,3 +56,6 @@ backup/
 .cursor/
 skills-lock.json
 skills.json
+
+# Local development context only (do not commit)
+docs/
