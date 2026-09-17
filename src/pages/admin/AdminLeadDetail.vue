@@ -13,6 +13,7 @@ import {
   leadSectionLabelKey,
   resolveLeadLabel,
 } from '@/data/leadAttribution'
+import { safeMailtoHref, safeTelHref } from '@/utils/safe-contact-href'
 
 const route = useRoute()
 const router = useRouter()
@@ -22,6 +23,8 @@ const crmStore = useCrmStore()
 
 const leadId = computed(() => String(route.params.id ?? ''))
 const lead = computed(() => leadsStore.leadDetail)
+const leadMailtoHref = computed(() => safeMailtoHref(lead.value?.email))
+const leadTelHref = computed(() => safeTelHref(lead.value?.phone))
 
 const replying = ref(false)
 const closing = ref(false)
@@ -305,21 +308,25 @@ const btnSecondary =
             <div>
               <dt class="text-text-muted">{{ t('admin.dashboard.contact') }}</dt>
               <dd>
-                <a class="text-deep font-medium underline" :href="`mailto:${lead.email}`">{{
-                  lead.email
-                }}</a>
+                <a
+                  v-if="leadMailtoHref"
+                  class="text-deep font-medium underline"
+                  :href="leadMailtoHref"
+                  >{{ lead.email }}</a
+                >
+                <span v-else class="text-text font-medium">{{ lead.email || '—' }}</span>
               </dd>
             </div>
             <div>
               <dt class="text-text-muted">{{ t('admin.leads.field_phone') }}</dt>
               <dd>
                 <a
-                  v-if="lead.phone"
+                  v-if="leadTelHref"
                   class="text-deep font-medium underline"
-                  :href="`tel:${lead.phone}`"
+                  :href="leadTelHref"
                   >{{ lead.phone }}</a
                 >
-                <span v-else class="text-text-muted">—</span>
+                <span v-else class="text-text-muted">{{ lead.phone || '—' }}</span>
               </dd>
             </div>
             <div v-if="lead.message">

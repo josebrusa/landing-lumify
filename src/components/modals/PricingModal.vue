@@ -7,6 +7,7 @@ import { useI18n } from '../../composables/useI18n'
 import { useFocusTrap } from '../../composables/useFocusTrap'
 import { useLeadsStore, type LeadInterestType } from '../../stores/leads'
 import { pricingAttribution } from '../../data/leadAttribution'
+import PrivacyFormNote from '../legal/PrivacyFormNote.vue'
 
 const { isPricingOpen, closePricingModal } = useModals()
 const { t } = useI18n()
@@ -167,6 +168,9 @@ async function onSubmit() {
       <p v-if="!submitted" class="pm-note text-[0.75rem] text-text-muted mt-3">
         {{ t('pm.note') }}
       </p>
+      <div v-if="!submitted" class="mt-2">
+        <PrivacyFormNote tone="light" />
+      </div>
     </div>
   </div>
 </template>

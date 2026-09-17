@@ -3,6 +3,7 @@ import GroupHome    from '../pages/GroupHome.vue'
 import Home        from '../pages/Home.vue'
 import LogisticsHome from '../pages/LogisticsHome.vue'
 import { useAuthStore } from '@/stores/auth'
+import { safeInternalPath } from '@/utils/safe-redirect'
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -41,6 +42,24 @@ const router = createRouter({
       path: '/book',
       name: 'book-meeting',
       component: () => import('../pages/BookMeeting.vue'),
+      meta: { siteFooter: true },
+    },
+    {
+      path: '/privacy',
+      name: 'privacy',
+      component: () => import('../pages/legal/PrivacyPolicy.vue'),
+      meta: { siteFooter: true },
+    },
+    {
+      path: '/terms',
+      name: 'terms',
+      component: () => import('../pages/legal/TermsOfService.vue'),
+      meta: { siteFooter: true },
+    },
+    {
+      path: '/cookies',
+      name: 'cookies',
+      component: () => import('../pages/legal/CookiePolicy.vue'),
       meta: { siteFooter: true },
     },
     // ── Auth / Admin ──
@@ -121,10 +140,9 @@ router.beforeEach(async (to) => {
 
   const guestFocused = to.matched.some((r) => r.meta.guestFocused)
   if (guestFocused && auth.isAuthenticated) {
-    const redirect =
-      typeof to.query.redirect === 'string' && to.query.redirect.startsWith('/')
-        ? to.query.redirect
-        : undefined
+    const redirect = safeInternalPath(
+      typeof to.query.redirect === 'string' ? to.query.redirect : undefined,
+    )
     if (redirect) return redirect
     return auth.hasRole('admin') ? '/admin' : '/tech'
   }

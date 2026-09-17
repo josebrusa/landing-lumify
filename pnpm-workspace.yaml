@@ -5,3 +5,10 @@ packages:
 # Vite depends on esbuild's postinstall/build script.
 allowBuilds:
   esbuild: true
+
+# Force patched transitive versions for remaining audit findings.
+# (pnpm v11 reads overrides from this file, not package.json)
+overrides:
+  postcss: ">=8.5.23"
+  nanoid: ">=3.3.18"
+  esbuild: ">=0.28.1"

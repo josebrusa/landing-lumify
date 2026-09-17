@@ -90,7 +90,17 @@ const linkClass =
     </div>
     <div class="border-t border-white/10 pt-6 text-xs flex justify-between flex-wrap gap-3">
       <span>{{ t('foot.copy') }}</span>
-      <span>Cataluña, España 🇪🇸</span>
+      <nav class="flex flex-wrap gap-x-4 gap-y-2" aria-label="Legal">
+        <RouterLink to="/privacy" class="text-white/45 no-underline hover:text-blue">
+          {{ t('foot.privacy') }}
+        </RouterLink>
+        <RouterLink to="/terms" class="text-white/45 no-underline hover:text-blue">
+          {{ t('foot.terms') }}
+        </RouterLink>
+        <RouterLink to="/cookies" class="text-white/45 no-underline hover:text-blue">
+          {{ t('foot.cookies') }}
+        </RouterLink>
+      </nav>
     </div>
   </footer>
 </template>

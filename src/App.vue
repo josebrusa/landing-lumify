@@ -2,6 +2,7 @@
 import { computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import Footer from './components/layout/Footer.vue'
+import CookieConsentBanner from './components/layout/CookieConsentBanner.vue'
 import Modal from './components/modals/Modal.vue'
 import PricingModal from './components/modals/PricingModal.vue'
 import { useLocaleStore } from './stores/locale'
@@ -27,4 +28,5 @@ watch(() => localeStore.lang, syncHtmlLang)
     <Modal />
     <PricingModal />
   </template>
+  <CookieConsentBanner />
 </template>

@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useI18n } from '../../composables/useI18n'
 import { useLeadsStore } from '../../stores/leads'
 import { PhClipboard, PhChartBar, PhTarget } from '@phosphor-icons/vue'
+import PrivacyFormNote from '../legal/PrivacyFormNote.vue'
 
 const { t } = useI18n()
 const leads = useLeadsStore()
@@ -147,6 +148,9 @@ function clearError(field: 'email') {
       <p v-if="!submitted" class="mt-3 text-[0.75rem] text-white/35 max-w-md mx-auto leading-relaxed reveal">
         {{ t('reg.lead_disclaimer', { brand: t('brand.name') }) }}
       </p>
+      <div v-if="!submitted" class="mt-3 max-w-md mx-auto reveal">
+        <PrivacyFormNote tone="dark" />
+      </div>
     </div>
   </section>
 </template>

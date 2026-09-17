@@ -7,6 +7,7 @@ import { useScrollReveal } from '../composables/useScrollReveal'
 import { useFocusTrap } from '../composables/useFocusTrap'
 import { useLeadsStore } from '../stores/leads'
 import { logisticsAttribution } from '../data/leadAttribution'
+import PrivacyFormNote from '../components/legal/PrivacyFormNote.vue'
 
 useScrollReveal('.reveal')
 
@@ -294,6 +295,9 @@ async function onSubmit() {
         <p v-if="!submitted" class="text-[0.75rem] text-text-muted mt-3">
           {{ t('log.modal.note') }}
         </p>
+        <div v-if="!submitted" class="mt-2">
+          <PrivacyFormNote tone="light" />
+        </div>
       </div>
     </div>
 

@@ -7,6 +7,7 @@ import * as crmService from '@/services/crm.service'
 import type { BookingSlot, LeadInterestType } from '@/types/api'
 import { addDays, toIsoLocalDate } from '@/utils/crmCalendar'
 import { getApiErrorMessage } from '@/utils/api-error'
+import PrivacyFormNote from '@/components/legal/PrivacyFormNote.vue'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -184,6 +185,7 @@ const inputClass = 'w-full rounded-radius-sm border border-gray-light px-3 py-2 
         >
           {{ submitting ? t('book.submitting') : t('book.submit') }}
         </button>
+        <PrivacyFormNote tone="light" class="mt-2" />
       </form>
     </div>
   </div>

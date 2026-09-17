@@ -7,6 +7,7 @@ import AdminModal from '@/components/admin/AdminModal.vue'
 import type { LeadClosedReason, MeetingType, OpportunityStage } from '@/types/api'
 import { resolveLeadLabel } from '@/data/leadAttribution'
 import { buildMeetingIcs, downloadIcsFile } from '@/utils/crmCalendar'
+import { safeMailtoHref, safeTelHref } from '@/utils/safe-contact-href'
 import * as crmService from '@/services/crm.service'
 
 const route = useRoute()
@@ -16,6 +17,8 @@ const crm = useCrmStore()
 
 const oppId = computed(() => String(route.params.id ?? ''))
 const opp = computed(() => crm.opportunityDetail)
+const oppMailtoHref = computed(() => safeMailtoHref(opp.value?.contact?.email))
+const oppTelHref = computed(() => safeTelHref(opp.value?.contact?.phone))
 
 const noteBody = ref('')
 const followUpLocal = ref('')
@@ -238,21 +241,25 @@ function goLead() {
             <div>
               <dt class="text-text-muted">Email</dt>
               <dd>
-                <a class="text-deep underline font-medium" :href="`mailto:${opp.contact.email}`">{{
-                  opp.contact.email
-                }}</a>
+                <a
+                  v-if="oppMailtoHref"
+                  class="text-deep underline font-medium"
+                  :href="oppMailtoHref"
+                  >{{ opp.contact.email }}</a
+                >
+                <span v-else class="font-medium">{{ opp.contact.email || '—' }}</span>
               </dd>
             </div>
             <div>
               <dt class="text-text-muted">{{ t('admin.leads.field_phone') }}</dt>
               <dd>
                 <a
-                  v-if="opp.contact.phone"
+                  v-if="oppTelHref"
                   class="text-deep underline font-medium"
-                  :href="`tel:${opp.contact.phone}`"
+                  :href="oppTelHref"
                   >{{ opp.contact.phone }}</a
                 >
-                <span v-else class="text-text-muted">—</span>
+                <span v-else class="text-text-muted">{{ opp.contact.phone || '—' }}</span>
               </dd>
             </div>
           </dl>

@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useI18n } from '@/composables/useI18n'
 import { getApiErrorMessage } from '@/utils/api-error'
+import { safeInternalPath } from '@/utils/safe-redirect'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -15,10 +16,9 @@ const password = ref('')
 const loading = ref(false)
 const errorMsg = ref<string | null>(null)
 
-const redirectTarget = computed(() => {
-  const r = route.query.redirect
-  return typeof r === 'string' && r.startsWith('/') ? r : null
-})
+const redirectTarget = computed(() =>
+  safeInternalPath(typeof route.query.redirect === 'string' ? route.query.redirect : undefined),
+)
 
 async function submit() {
   errorMsg.value = null

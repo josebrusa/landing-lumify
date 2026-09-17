@@ -2,17 +2,26 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import Register from '@/components/HomeSections/Register.vue'
 
+function mountRegister() {
+  return mount(Register, {
+    global: {
+      plugins: [createPinia()],
+      stubs: {
+        RouterLink: {
+          template: '<a><slot /></a>',
+        },
+      },
+    },
+  })
+}
+
 describe('Register', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
   })
 
   it('renders form and heading', () => {
-    const wrapper = mount(Register, {
-      global: {
-        plugins: [createPinia()],
-      },
-    })
+    const wrapper = mountRegister()
     expect(wrapper.find('form').exists()).toBe(true)
     expect(wrapper.find('input[id="register-email"]').exists()).toBe(true)
     expect(wrapper.find('input[id="register-company"]').exists()).toBe(true)
@@ -20,11 +29,7 @@ describe('Register', () => {
   })
 
   it('shows validation error when submitting with empty email', async () => {
-    const wrapper = mount(Register, {
-      global: {
-        plugins: [createPinia()],
-      },
-    })
+    const wrapper = mountRegister()
     const form = wrapper.find('form')
     await form.trigger('submit.prevent')
     const error = wrapper.find('[id="register-email-error"]')
@@ -33,11 +38,7 @@ describe('Register', () => {
   })
 
   it('shows invalid email error for invalid email format', async () => {
-    const wrapper = mount(Register, {
-      global: {
-        plugins: [createPinia()],
-      },
-    })
+    const wrapper = mountRegister()
     await wrapper.find('input[id="register-email"]').setValue('not-an-email')
     await wrapper.find('form').trigger('submit.prevent')
     const error = wrapper.find('[id="register-email-error"]')
@@ -46,11 +47,7 @@ describe('Register', () => {
   })
 
   it('on valid submit hides form and shows success message', async () => {
-    const wrapper = mount(Register, {
-      global: {
-        plugins: [createPinia()],
-      },
-    })
+    const wrapper = mountRegister()
     await wrapper.find('input[id="register-email"]').setValue('user@example.com')
     await wrapper.find('form').trigger('submit.prevent')
     await flushPromises()
