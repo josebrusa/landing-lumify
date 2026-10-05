@@ -31,6 +31,12 @@ const router = createRouter({
       component: Home,
       meta: { siteFooter: true },
     },
+    {
+      path: '/tech/assessment',
+      name: 'ecommerce-assessment',
+      component: () => import('../pages/EcommerceAssessment.vue'),
+      meta: { siteFooter: true },
+    },
     // ── Lumify Logistics ──
     {
       path: '/logistics',
