@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { RouterLink } from 'vue-router'
 import { useI18n } from '../../composables/useI18n'
 import { useModals } from '../../composables/useModals'
 import { useLeadsStore } from '../../stores/leads'
@@ -66,6 +67,14 @@ function handleServiceInterest(serviceKey: (typeof services)[number]['key']) {
           {{ t(s.linkKey) }}
         </button>
       </div>
+    </div>
+    <div class="mt-10 sm:mt-12 text-center reveal">
+      <RouterLink
+        to="/tech/assessment"
+        class="inline-flex items-center justify-center gap-2 bg-deep text-white py-3.5 px-7 rounded-full text-sm font-semibold no-underline transition-all hover:bg-deep/90 hover:-translate-y-0.5"
+      >
+        {{ t('serv.cta_assessment') }}
+      </RouterLink>
     </div>
   </section>
 </template>

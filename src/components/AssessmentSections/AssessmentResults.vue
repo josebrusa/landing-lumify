@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { PhCheck, PhWarning } from '@phosphor-icons/vue'
+import { PhLock, PhWarning } from '@phosphor-icons/vue'
 import {
   AREA_DEFS,
   maturityBadgeKey,
   maturityLevel,
   maturityTitleKey,
   type AssessmentAreaId,
-  type Finding,
 } from '../../data/assessmentContent'
+import type { AnalyzeFinding } from '../../services/assessment.service'
 import { useI18n } from '../../composables/useI18n'
 
 const props = defineProps<{
@@ -16,10 +16,10 @@ const props = defineProps<{
   globalScore: number
   scores: Partial<Record<AssessmentAreaId, number>>
   selectedAreas: AssessmentAreaId[]
-  findings: Finding[]
+  findings: AnalyzeFinding[]
 }>()
 
-const emit = defineEmits<{ upgrade: [] }>()
+const emit = defineEmits<{ unlock: []; upgrade: [] }>()
 
 const { t } = useI18n()
 
@@ -40,16 +40,15 @@ const areaCards = computed(() =>
 )
 
 const badgeClass = computed(() => {
-  if (level.value === 'high') return 'bg-emerald-50 text-emerald-700'
-  if (level.value === 'mid') return 'bg-amber-50 text-amber-700'
+  if (level.value === 'excellent') return 'bg-emerald-50 text-emerald-700'
+  if (level.value === 'good') return 'bg-yellow-50 text-yellow-800'
+  if (level.value === 'improvable') return 'bg-orange-50 text-orange-700'
   return 'bg-red-50 text-red-700'
 })
 
-function findingDotClass(type: Finding['type']) {
-  if (type === 'ok') return 'bg-emerald-50 text-emerald-600'
-  if (type === 'risk') return 'bg-amber-50 text-amber-600'
-  return 'bg-red-50 text-red-600'
-}
+const lockedCount = computed(
+  () => props.findings.filter((f) => f.severity === 'error' || f.severity === 'warn').length,
+)
 
 function animateScore() {
   displayScore.value = 0
@@ -81,7 +80,7 @@ watch(() => props.globalScore, animateScore)
     </h1>
     <p class="text-sm text-text-muted mb-2">
       {{ t('assess.results.of') }}
-      <strong class="text-blue font-semibold">https://{{ url }}</strong>
+      <strong class="text-blue font-semibold">{{ url }}</strong>
     </p>
   </div>
 
@@ -132,25 +131,39 @@ watch(() => props.globalScore, animateScore)
     </div>
   </div>
 
-  <p class="text-xs font-semibold tracking-[0.07em] uppercase text-text-muted mt-4 mb-2.5">
-    {{ t('assess.results.findings') }}
-  </p>
-  <div class="space-y-2 mb-5">
-    <div
-      v-for="(f, i) in findings"
-      :key="i"
-      class="flex gap-2.5 p-3 bg-white border border-gray-light rounded-radius"
-    >
-      <span
-        class="w-[18px] h-[18px] rounded-full flex items-center justify-center shrink-0 mt-0.5"
-        :class="findingDotClass(f.type)"
-      >
-        <PhCheck v-if="f.type === 'ok'" :size="10" weight="bold" />
-        <PhWarning v-else :size="10" weight="bold" />
-      </span>
-      <p class="text-[13px] text-text-muted leading-[1.5]">
-        {{ t(f.key, f.params) }}
+  <div
+    class="relative mt-4 mb-5 rounded-radius border border-gray-light bg-white overflow-hidden"
+  >
+    <div class="p-4 blur-[3px] select-none pointer-events-none opacity-60" aria-hidden="true">
+      <p class="text-xs font-semibold tracking-[0.07em] uppercase text-text-muted mb-2.5">
+        {{ t('assess.results.findings') }}
       </p>
+      <div class="space-y-2">
+        <div
+          v-for="i in Math.min(3, Math.max(lockedCount, 2))"
+          :key="i"
+          class="flex gap-2.5 p-3 border border-gray-light rounded-radius"
+        >
+          <PhWarning :size="14" class="text-orange-500 shrink-0 mt-0.5" />
+          <p class="text-[13px] text-text-muted">
+            {{ t('assess.results.gated_placeholder') }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <div
+      class="absolute inset-0 flex flex-col items-center justify-center bg-white/70 backdrop-blur-[1px] px-4 text-center"
+    >
+      <PhLock :size="28" class="text-deep mb-2" weight="duotone" />
+      <p class="font-heading font-bold text-deep mb-1">{{ t('assess.results.gated_title') }}</p>
+      <p class="text-sm text-text-muted mb-4 max-w-[36ch]">{{ t('assess.results.gated_desc') }}</p>
+      <button
+        type="button"
+        class="inline-flex items-center justify-center py-2.5 px-5 rounded-full bg-blue text-white text-sm font-semibold transition-all hover:bg-[#5aaeff]"
+        @click="emit('unlock')"
+      >
+        {{ t('assess.results.gated_cta') }}
+      </button>
     </div>
   </div>
 
@@ -163,7 +176,7 @@ watch(() => props.globalScore, animateScore)
     <p class="text-[13px] text-text-muted mb-4">{{ t('assess.results.upgrade_desc') }}</p>
     <button
       type="button"
-      class="inline-flex items-center justify-center py-2.5 px-5 rounded-full bg-blue text-white text-sm font-semibold transition-all hover:bg-[#5aaeff] hover:-translate-y-0.5"
+      class="inline-flex items-center justify-center py-2.5 px-5 rounded-full bg-blue text-white text-sm font-semibold transition-all hover:bg-[#5aaeff]"
       @click="emit('upgrade')"
     >
       {{ t('assess.results.upgrade_cta') }}

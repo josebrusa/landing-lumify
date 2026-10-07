@@ -1,9 +1,8 @@
 <script setup lang="ts">
+import { RouterLink } from 'vue-router'
 import { useI18n } from '../../composables/useI18n'
-import { useModals } from '../../composables/useModals'
 
 const { t } = useI18n()
-const { openPricingModal } = useModals()
 </script>
 
 <template>
@@ -40,13 +39,12 @@ const { openPricingModal } = useModals()
         >
           {{ t('hero.cta1') }}
         </a>
-        <button
-          type="button"
-          class="inline-flex items-center gap-2.5 border border-white/30 text-white py-4 px-8 rounded-full font-medium text-base transition-all duration-[0.25s] cursor-pointer font-sans hover:border-blue hover:text-blue hover:-translate-y-0.5"
-          @click="openPricingModal()"
+        <RouterLink
+          to="/tech/assessment"
+          class="inline-flex items-center gap-2.5 border border-white/30 text-white py-4 px-8 rounded-full font-medium text-base no-underline transition-all duration-[0.25s] font-sans hover:border-blue hover:text-blue hover:-translate-y-0.5"
         >
-          {{ t('hero.cta2') }}
-        </button>
+          {{ t('hero.cta_assessment') }}
+        </RouterLink>
       </div>
     </div>
     <div

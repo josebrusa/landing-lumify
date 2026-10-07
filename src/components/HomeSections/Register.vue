@@ -93,6 +93,7 @@ function clearError(field: 'email') {
       </p>
       <form
         v-if="!submitted"
+        data-testid="register-form"
         class="flex gap-3 flex-wrap justify-center reveal"
         @submit.prevent="onSubmit"
       >
@@ -101,6 +102,7 @@ function clearError(field: 'email') {
           <input
             id="register-company"
             v-model="company"
+            data-testid="register-company"
             type="text"
             :placeholder="t('reg.company')"
             autocomplete="organization"
@@ -112,6 +114,7 @@ function clearError(field: 'email') {
           <input
             id="register-email"
             v-model="email"
+            data-testid="register-email"
             type="email"
             :placeholder="t('reg.email')"
             :aria-invalid="!!errors.email"
@@ -133,13 +136,18 @@ function clearError(field: 'email') {
         </div>
         <button
           type="submit"
+          data-testid="register-submit"
           :disabled="leads.createLeadSubmitting"
           class="min-h-[44px] inline-flex items-center justify-center py-4 px-8 rounded-full bg-blue text-white border-none cursor-pointer font-bold text-[0.95rem] font-sans transition-all hover:bg-[#5aaeff] hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(60,157,255,0.4)] whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-60"
         >
           {{ leads.createLeadSubmitting ? t('reg.submitting') : t('reg.btn') }}
         </button>
       </form>
-      <p v-else class="text-white/90 font-medium reveal">
+      <p
+        v-else
+        data-testid="register-success"
+        class="text-white/90 font-medium reveal"
+      >
         ✓ {{ t('reg.success') }}
       </p>
       <p v-if="!submitted" class="mt-4 text-[0.8rem] text-white/40 reveal">

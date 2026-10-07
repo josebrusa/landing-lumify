@@ -47,6 +47,28 @@ cp .env.example .env
 
 ---
 
+## Entornos (local / test / prod)
+
+| Entorno | Remote Git | Branch | Site Netlify | `VITE_API_BASE_URL` |
+|---------|------------|--------|--------------|---------------------|
+| **local** | — | — | Docker / Vite `:5173` | `http://localhost:3000` |
+| **test** | `origin` = `josebrusa/landing-lumify` | `main` | `https://mellow-meringue-a2f4d9.netlify.app` | URL estable Vercel **Preview** del backend (`development`) |
+| **prod** | `upstream` = `lumify7/landing-lumify` | `main` | `https://www.lumify.es` | `https://backend-lumify.vercel.app` |
+
+```bash
+# → Netlify test
+git push origin main
+
+# → Netlify prod
+git push upstream main
+```
+
+El backend de test no es un segundo proyecto Vercel: es **Preview** de la rama `development` (Neon branch `test`). Detalle del API: `backend-lumify/docs/environments.md`.
+
+Tras cambiar `VITE_API_BASE_URL` en Netlify, hace falta un **redeploy** (Vite la incrusta en el build).
+
+---
+
 ## Docker (opcional)
 
 - Requiere **Docker Desktop** (o Docker Engine) con `docker compose` disponible.
@@ -92,7 +114,7 @@ El alta de usuarios de plataforma es por **invitación de un administrador**, no
 
 Arquitectura HTTP: **`axios`** (`src/api/client.ts`), servicios por dominio en `src/services/`, tipos alineados al API en `src/types/api.ts`, sesión en Pinia (`src/stores/auth.ts`).
 
-En el backend, incluye el origen del frontend en `CORS_ORIGIN` (p. ej. `http://localhost:5173` en desarrollo).
+En el backend, incluye el origen del frontend en `CORS_ORIGIN` (p. ej. `http://localhost:5173` en desarrollo; en test, la URL de Netlify test; en prod, `https://www.lumify.es`).
 
 ---
 
@@ -138,7 +160,52 @@ Todos los comandos se ejecutan desde la raíz del proyecto (`lumify`).
   pnpm run test:watch
   ```
 
----
+- **Smoke manual de emails de lead (Gmail u Outlook del `.env`)**:
+
+  El backend acepta **cualquier** SMTP vía `SMTP_*` (Gmail, Outlook/M365, etc.). Prod Lumify usa Outlook; en local usa lo que tengas en `backend-lumify/.env`.
+
+  ```bash
+  # El seed NO está en landing-lumify — corre en el backend:
+  cd ../backend-lumify
+  pnpm run seed   # ADMIN_SEED_EMAIL=demo@lumify.es desde .env → Postgres local only
+  pnpm run start:dev
+
+  cd ../landing-lumify
+  pnpm run dev
+  ```
+
+  Abre `http://localhost:5173/tech#registro`, envía con un email real que controles. Debes ver:
+
+  - **Ack** en la bandeja del lead
+  - **Notify** a los admins de la DB **local** (tras seed: `demo@lumify.es`)
+  - Logs API: `Lead acknowledgment email sent` / `Lead admin notify email sent`
+
+- **E2E Playwright (emails de lead, local + Mailpit)**:
+
+  Prueba el formulario `#registro` en `/tech` y comprueba ack + notify vía [Mailpit](https://github.com/axllent/mailpit) (no usa Gmail/Outlook reales ni Neon).
+
+  Prerrequisitos (backend):
+
+  ```bash
+  cd ../backend-lumify
+  docker compose --profile e2e up mailpit -d
+
+  SMTP_HOST=127.0.0.1 SMTP_PORT=1025 SMTP_USER= SMTP_PASS= MAIL_FROM=noreply@lumify.local \
+    pnpm run start:dev
+
+  pnpm run seed   # demo@lumify.es from .env → local DB
+  ```
+
+  Luego, desde `landing-lumify` (con `VITE_API_BASE_URL=http://localhost:3000` en `.env`):
+
+  ```bash
+  E2E_ADMIN_EMAIL=demo@lumify.es pnpm run test:e2e
+  # o UI: pnpm run test:e2e:ui
+  ```
+
+  Variables opcionales: `E2E_BASE_URL` (default `http://localhost:5173`), `E2E_MAILPIT_URL` (default `http://127.0.0.1:8025`), `E2E_ADMIN_EMAIL`.
+
+  UI de Mailpit: `http://localhost:8025`.
 
 ## Estructura del proyecto
 

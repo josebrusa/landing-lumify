@@ -166,8 +166,11 @@ export const useLeadsStore = defineStore('leads', () => {
   }
 
   async function createLead(payload: {
-    company: string
+    company?: string
     email: string
+    name?: string
+    phone?: string
+    message?: string
     fallbackInterest: LeadInterestType
     fallbackContext?: LeadIntentFallback
   }) {
@@ -175,10 +178,16 @@ export const useLeadsStore = defineStore('leads', () => {
     createLeadError.value = null
     try {
       const intent = resolveIntent(payload.fallbackInterest, payload.fallbackContext)
-      const companyTrim = payload.company.trim()
+      const companyTrim = payload.company?.trim() ?? ''
+      const nameTrim = payload.name?.trim() ?? ''
+      const phoneTrim = payload.phone?.trim() ?? ''
+      const messageTrim = payload.message?.trim() ?? ''
       const localeStore = useLocaleStore()
       const res = await leadsService.createPublicLead({
         ...(companyTrim ? { company: companyTrim } : {}),
+        ...(nameTrim ? { name: nameTrim } : {}),
+        ...(phoneTrim ? { phone: phoneTrim } : {}),
+        ...(messageTrim ? { message: messageTrim } : {}),
         email: payload.email.trim(),
         interestType: intent.interestType,
         sourcePage: intent.sourcePage,
