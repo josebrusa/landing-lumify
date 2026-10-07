@@ -273,6 +273,7 @@ watch([from, to, tz], () => {
               <option value="pim_service">{{ t('admin.leads.interest_service') }}</option>
               <option value="pim_training">{{ t('admin.leads.interest_training') }}</option>
               <option value="logistics_service">{{ t('admin.leads.interest_logistics') }}</option>
+              <option value="ecommerce_assessment">{{ t('admin.leads.interest_assessment') }}</option>
             </select>
           </label>
 

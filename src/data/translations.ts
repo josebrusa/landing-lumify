@@ -27,6 +27,7 @@ export const translations: Record<Lang, TranslationsMap> = {
       'Consultoría especializada en PIM, gobierno de datos y syndication omnicanal. Estrategia, diseño e implementación para equipos que quieren controlar su catálogo.',
     'hero.cta1': 'Explorar servicios →',
     'hero.cta2': 'Ver tarifas',
+    'hero.cta_assessment': 'Analiza tu ecommerce gratis',
     'hero.stat1': 'Experiencia PIM',
     'hero.stat2': 'Bloques de servicio',
     'hero.stat3': 'Visión omnicanal',
@@ -34,6 +35,7 @@ export const translations: Record<Lang, TranslationsMap> = {
     'serv.title': 'Todo el ciclo de vida del PIM',
     'serv.desc':
       'Cuatro bloques de servicio que cubren desde la estrategia inicial hasta la operación continua de tu plataforma de información de producto.',
+    'serv.cta_assessment': 'Analiza tu ecommerce gratis →',
     's1.title': 'Estrategia & Discovery',
     's1.desc':
       'Análisis de situación actual, mapa de pain points y roadmap PIM por fases. El punto de partida para cualquier transformación de datos.',
@@ -257,6 +259,8 @@ export const translations: Record<Lang, TranslationsMap> = {
     'admin.leads.card': 'Card',
     'admin.leads.cta': 'CTA',
     'lead.interest.pim_service': 'Servicios PIM',
+    'lead.interest.ecommerce_assessment': 'Assessment Ecommerce',
+    'admin.leads.interest_assessment': 'Assessment',
     'lead.interest.pim_training': 'Formación PIM',
     'lead.interest.logistics_service': 'Logistics',
     'lead.section.services': 'Servicios',
@@ -399,6 +403,7 @@ export const translations: Record<Lang, TranslationsMap> = {
       'Consultoria especialitzada en PIM, govern de dades i syndication omnicanal. Estratègia, disseny i implementació per a equips que volen controlar el seu catàleg.',
     'hero.cta1': 'Explorar serveis →',
     'hero.cta2': 'Veure tarifes',
+    'hero.cta_assessment': 'Analitza el teu ecommerce gratis',
     'hero.stat1': 'Experiència PIM',
     'hero.stat2': 'Blocs de servei',
     'hero.stat3': 'Visió omnicanal',
@@ -406,6 +411,7 @@ export const translations: Record<Lang, TranslationsMap> = {
     'serv.title': 'Tot el cicle de vida del PIM',
     'serv.desc':
       "Quatre blocs de servei que cobreixen des de l'estratègia inicial fins a l'operació contínua de la teva plataforma d'informació de producte.",
+    'serv.cta_assessment': 'Analitza el teu ecommerce gratis →',
     's1.title': 'Estratègia & Discovery',
     's1.desc':
       "Anàlisi de la situació actual, mapa de pain points i roadmap PIM per fases. El punt de partida per a qualsevol transformació de dades.",
@@ -630,6 +636,8 @@ export const translations: Record<Lang, TranslationsMap> = {
     'admin.leads.card': 'Card',
     'admin.leads.cta': 'CTA',
     'lead.interest.pim_service': 'Serveis PIM',
+    'lead.interest.ecommerce_assessment': 'Assessment Ecommerce',
+    'admin.leads.interest_assessment': 'Assessment',
     'lead.interest.pim_training': 'Formació PIM',
     'lead.interest.logistics_service': 'Logistics',
     'lead.section.services': 'Serveis',
@@ -772,6 +780,7 @@ export const translations: Record<Lang, TranslationsMap> = {
       'Specialized consulting in PIM, data governance and omnichannel syndication. Strategy, design and implementation for teams that want full control of their catalog.',
     'hero.cta1': 'Explore services →',
     'hero.cta2': 'See pricing',
+    'hero.cta_assessment': 'Analyze your ecommerce for free',
     'hero.stat1': 'PIM expertise',
     'hero.stat2': 'Service blocks',
     'hero.stat3': 'Omnichannel vision',
@@ -779,6 +788,7 @@ export const translations: Record<Lang, TranslationsMap> = {
     'serv.title': 'The full PIM lifecycle',
     'serv.desc':
       'Four service blocks covering everything from initial strategy to continuous operation of your product information platform.',
+    'serv.cta_assessment': 'Analyze your ecommerce for free →',
     's1.title': 'Strategy & Discovery',
     's1.desc':
       'Current state analysis, pain point mapping and phased PIM roadmap. The starting point for any data transformation.',
@@ -1003,6 +1013,8 @@ export const translations: Record<Lang, TranslationsMap> = {
     'admin.leads.card': 'Card',
     'admin.leads.cta': 'CTA',
     'lead.interest.pim_service': 'PIM Services',
+    'lead.interest.ecommerce_assessment': 'Ecommerce Assessment',
+    'admin.leads.interest_assessment': 'Assessment',
     'lead.interest.pim_training': 'PIM Training',
     'lead.interest.logistics_service': 'Logistics',
     'lead.section.services': 'Services',

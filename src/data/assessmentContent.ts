@@ -2,7 +2,6 @@ import type { Lang } from './translations'
 
 export type AssessmentAreaId = 'pim' | 'dam' | 'seo' | 'ux' | 'compliance'
 export type ReviewType = 'instant' | 'detailed'
-export type FindingLevel = 'ok' | 'risk' | 'warn'
 
 export interface LocalizedText {
   es: string
@@ -21,21 +20,6 @@ export interface AreaDefinition {
   labelKey: string
   subKey: string
   highlight?: boolean
-}
-
-export interface MicrolinkSiteData {
-  title?: string
-  description?: string
-  lang?: string
-  url?: string
-  image?: { url?: string; width?: number; height?: number }
-  logo?: { url?: string }
-}
-
-export interface Finding {
-  type: FindingLevel
-  key: string
-  params?: Record<string, string | number>
 }
 
 export const AREA_IDS: AssessmentAreaId[] = ['pim', 'dam', 'seo', 'ux', 'compliance']
@@ -379,141 +363,6 @@ export function loc(text: LocalizedText, lang: Lang): string {
   return text[lang] ?? text.es
 }
 
-function signalFlags(data: MicrolinkSiteData) {
-  const title = data.title || ''
-  const desc = data.description || ''
-  const keywords = `${title} ${desc}`.toLowerCase()
-  return {
-    title,
-    desc,
-    image: data.image?.url || '',
-    lang: data.lang || '',
-    logo: data.logo?.url || '',
-    hasIva: /iva|tax|vat|impuesto/i.test(keywords),
-    hasCE: /\bce\b|marcado ce|conformidad|declaraci/i.test(keywords),
-    hasReturn: /devoluci|return|14 d[ií]as|garant[ií]/i.test(keywords),
-    hasVendor: /vendedor|seller|responsable|empresa|s\.l\.|s\.a\./i.test(keywords),
-    hasDocLinks: /pdf|ficha t[eé]cn|manual|certificad|sds|hoja de seguridad/i.test(keywords),
-  }
-}
-
-export function computeRealScores(
-  areas: Iterable<AssessmentAreaId>,
-  data: MicrolinkSiteData,
-): { scores: Partial<Record<AssessmentAreaId, number>>; global: number } {
-  const s = signalFlags(data)
-  const scores: Partial<Record<AssessmentAreaId, number>> = {}
-  const areaList = [...areas]
-
-  for (const area of areaList) {
-    let pts = 0
-    if (area === 'seo') {
-      if (s.title.length >= 30 && s.title.length <= 65) pts += 35
-      else if (s.title.length > 0) pts += 15
-      if (s.desc.length >= 50 && s.desc.length <= 160) pts += 35
-      else if (s.desc.length > 0) pts += 15
-      if (s.lang) pts += 15
-      if (!/[?&=%]/.test((data.url || '').split('/')[2] || '')) pts += 15
-    } else if (area === 'dam') {
-      if (s.image) pts += 35
-      if (s.logo) pts += 15
-      if (s.hasDocLinks) pts += 30
-      if (data.image?.width && data.image?.height) pts += 20
-      pts = Math.min(pts, 100)
-    } else if (area === 'pim') {
-      let base = 40
-      if (s.title.length > 10) base += 15
-      if (s.desc.length > 50) base += 15
-      if (s.image) base += 15
-      if (s.hasCE) base += 15
-      pts = Math.min(base, 100)
-    } else if (area === 'ux') {
-      let base = 40
-      if (s.title.length > 5) base += 15
-      if (s.desc.length > 20) base += 15
-      if (s.image) base += 15
-      if (s.hasReturn) base += 15
-      pts = Math.min(base, 100)
-    } else if (area === 'compliance') {
-      let base = 10
-      if (s.hasIva) base += 22
-      if (s.hasCE) base += 22
-      if (s.hasReturn) base += 23
-      if (s.hasVendor) base += 23
-      pts = Math.min(base, 100)
-    }
-    scores[area] = Math.max(10, Math.min(100, pts))
-  }
-
-  const total = areaList.reduce((acc, a) => acc + (scores[a] ?? 0), 0)
-  const global = areaList.length ? Math.round(total / areaList.length) : 0
-  return { scores, global }
-}
-
-export function buildRealFindings(
-  areas: Iterable<AssessmentAreaId>,
-  data: MicrolinkSiteData,
-): Finding[] {
-  const s = signalFlags(data)
-  const set = new Set(areas)
-  const findings: Finding[] = []
-
-  if (set.has('seo')) {
-    if (s.title.length >= 30 && s.title.length <= 65) {
-      findings.push({ type: 'ok', key: 'assess.find.seo.title_ok', params: { n: s.title.length } })
-    } else if (!s.title.length) {
-      findings.push({ type: 'warn', key: 'assess.find.seo.title_missing' })
-    } else {
-      findings.push({ type: 'risk', key: 'assess.find.seo.title_len', params: { n: s.title.length } })
-    }
-    if (!s.desc.length) {
-      findings.push({ type: 'warn', key: 'assess.find.seo.desc_missing' })
-    } else if (s.desc.length < 50 || s.desc.length > 160) {
-      findings.push({ type: 'risk', key: 'assess.find.seo.desc_len', params: { n: s.desc.length } })
-    }
-  }
-
-  if (set.has('dam')) {
-    findings.push({
-      type: s.image ? 'ok' : 'warn',
-      key: s.image ? 'assess.find.dam.image_ok' : 'assess.find.dam.image_missing',
-    })
-    findings.push({
-      type: s.hasDocLinks ? 'ok' : 'risk',
-      key: s.hasDocLinks ? 'assess.find.dam.docs_ok' : 'assess.find.dam.docs_missing',
-    })
-  }
-
-  if (set.has('pim')) {
-    findings.push({
-      type: s.hasCE ? 'ok' : 'risk',
-      key: s.hasCE ? 'assess.find.pim.ce_ok' : 'assess.find.pim.ce_missing',
-    })
-  }
-
-  if (set.has('ux')) {
-    findings.push({
-      type: s.hasReturn ? 'ok' : 'risk',
-      key: s.hasReturn ? 'assess.find.ux.return_ok' : 'assess.find.ux.return_missing',
-    })
-  }
-
-  if (set.has('compliance')) {
-    findings.push({
-      type: s.hasIva ? 'ok' : 'warn',
-      key: s.hasIva ? 'assess.find.comp.iva_ok' : 'assess.find.comp.iva_missing',
-    })
-    if (!s.hasVendor) {
-      findings.push({ type: 'warn', key: 'assess.find.comp.vendor_missing' })
-    }
-    if (!s.hasCE && !s.hasDocLinks) {
-      findings.push({ type: 'risk', key: 'assess.find.comp.ce_docs_missing' })
-    }
-  }
-
-  return findings.slice(0, 6)
-}
-
 export function computeQuestionScores(
   areas: Iterable<AssessmentAreaId>,
   answers: Record<string, number>,
@@ -541,20 +390,25 @@ export function computeQuestionScores(
   }
 }
 
+export type MaturityLevel = 'critical' | 'improvable' | 'good' | 'excellent'
+
 export function maturityTitleKey(global: number): string {
-  if (global >= 75) return 'assess.results.title_high'
-  if (global >= 50) return 'assess.results.title_mid'
-  return 'assess.results.title_low'
+  if (global >= 81) return 'assess.results.title_excellent'
+  if (global >= 66) return 'assess.results.title_good'
+  if (global >= 41) return 'assess.results.title_improvable'
+  return 'assess.results.title_critical'
 }
 
 export function maturityBadgeKey(global: number): string {
-  if (global >= 75) return 'assess.results.badge_high'
-  if (global >= 50) return 'assess.results.badge_mid'
-  return 'assess.results.badge_low'
+  if (global >= 81) return 'assess.results.badge_excellent'
+  if (global >= 66) return 'assess.results.badge_good'
+  if (global >= 41) return 'assess.results.badge_improvable'
+  return 'assess.results.badge_critical'
 }
 
-export function maturityLevel(global: number): 'high' | 'mid' | 'low' {
-  if (global >= 75) return 'high'
-  if (global >= 50) return 'mid'
-  return 'low'
+export function maturityLevel(global: number): MaturityLevel {
+  if (global >= 81) return 'excellent'
+  if (global >= 66) return 'good'
+  if (global >= 41) return 'improvable'
+  return 'critical'
 }

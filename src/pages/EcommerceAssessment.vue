@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import AppNav from '../components/layout/AppNav.vue'
 import AssessmentStepSetup from '../components/AssessmentSections/AssessmentStepSetup.vue'
+import AssessmentTypeSelect from '../components/AssessmentSections/AssessmentTypeSelect.vue'
 import AssessmentLoading from '../components/AssessmentSections/AssessmentLoading.vue'
 import AssessmentResults from '../components/AssessmentSections/AssessmentResults.vue'
 import AssessmentQuestions from '../components/AssessmentSections/AssessmentQuestions.vue'
@@ -19,28 +20,39 @@ const {
   selectedAreas,
   answers,
   email,
+  name,
+  company,
+  phone,
+  gdprConsent,
+  honeypot,
   scores,
   globalScore,
   findings,
+  analyzedUrl,
   setupError,
+  typeError,
   questionsError,
   emailError,
+  analyzeError,
+  submitError,
   submitting,
   loadingIndex,
   loadingDone,
   progressPct,
   activeDot,
   showDetailedDots,
-  setupValid,
-  emailValid,
+  urlAreasValid,
+  contactValid,
   selectedAreaList,
   toggleArea,
   selectType,
   setAnswer,
-  start,
+  continueFromUrlAreas,
+  startFromType,
   switchToDetailed,
-  goEmail,
-  submitDetailed,
+  goEmailFromResults,
+  goEmailFromQuestions,
+  submitContact,
 } = useAssessmentFlow()
 
 const areasLabel = computed(() =>
@@ -53,13 +65,14 @@ const dots = computed(() => {
   const max = showDetailedDots.value ? 3 : 2
   return Array.from({ length: max }, (_, i) => i + 1)
 })
+
+const displayUrl = computed(() => analyzedUrl.value || url.value)
 </script>
 
 <template>
   <div class="min-h-screen bg-surface pt-[90px]">
     <AppNav />
 
-    <!-- top-[90px] clears AppNav (~89px: py-18 + min-h-44 lang buttons) -->
     <div
       class="sticky top-[90px] z-40 bg-surface/95 backdrop-blur-md border-b border-gray-light"
     >
@@ -102,16 +115,23 @@ const dots = computed(() => {
 
     <main class="max-w-[740px] mx-auto px-[5%] pt-4 pb-16">
       <AssessmentStepSetup
-        v-if="step === 'setup'"
+        v-if="step === 'urlAreas'"
         :url="url"
-        :review-type="reviewType"
         :selected-areas="selectedAreas"
         :setup-error="setupError"
-        :setup-valid="setupValid"
+        :url-areas-valid="urlAreasValid"
         @update:url="url = $event"
-        @select-type="selectType"
         @toggle-area="toggleArea"
-        @start="start"
+        @continue="continueFromUrlAreas"
+      />
+
+      <AssessmentTypeSelect
+        v-else-if="step === 'type'"
+        :review-type="reviewType"
+        :type-error="typeError"
+        :analyze-error="analyzeError"
+        @select-type="selectType"
+        @start="startFromType"
       />
 
       <AssessmentLoading
@@ -123,11 +143,12 @@ const dots = computed(() => {
 
       <AssessmentResults
         v-else-if="step === 'results'"
-        :url="url"
+        :url="displayUrl"
         :global-score="globalScore"
         :scores="scores"
         :selected-areas="selectedAreaList"
         :findings="findings"
+        @unlock="goEmailFromResults"
         @upgrade="switchToDetailed"
       />
 
@@ -137,22 +158,34 @@ const dots = computed(() => {
         :answers="answers"
         :questions-error="questionsError"
         @answer="setAnswer"
-        @continue="goEmail"
+        @continue="goEmailFromQuestions"
       />
 
       <AssessmentEmailGate
         v-else-if="step === 'email'"
+        :review-type="reviewType"
         :email="email"
-        :email-valid="emailValid"
+        :name="name"
+        :company="company"
+        :phone="phone"
+        :gdpr-consent="gdprConsent"
+        :honeypot="honeypot"
+        :contact-valid="contactValid"
         :email-error="emailError"
+        :submit-error="submitError"
         :submitting="submitting"
         @update:email="email = $event"
-        @submit="submitDetailed"
+        @update:name="name = $event"
+        @update:company="company = $event"
+        @update:phone="phone = $event"
+        @update:gdpr-consent="gdprConsent = $event"
+        @update:honeypot="honeypot = $event"
+        @submit="submitContact"
       />
 
       <AssessmentConfirm
         v-else-if="step === 'confirm'"
-        :url="url"
+        :url="displayUrl"
         :areas-label="areasLabel"
         :email="email"
       />

@@ -13,11 +13,14 @@
 - Preview build: `pnpm run preview` (Vite preview)
 - Tests: `pnpm test` (Jest)
 - Single test: `pnpm test -- <pattern>` (Jest forwards args)
+- E2E (lead emails + Mailpit): `pnpm run test:e2e` — see README; requires local API with SMTP→Mailpit and a seeded admin.
 
 ## Environment / Deploy Gotchas
 
 - API base is `VITE_API_BASE_URL` (without trailing `/api`; client appends `/api`). If unset, runtime falls back to same-origin `/api`.
 - Netlify builds fail fast if `VITE_API_BASE_URL` is missing: enforced by a custom Vite plugin in `vite.config.ts` when `NETLIFY=true`.
+- Remotes: `origin` = `josebrusa/landing-lumify` → Netlify **test** (`mellow-meringue-…`); `upstream` = `lumify7/landing-lumify` → Netlify **prod** (`www.lumify.es`). Both use branch `main`.
+- Test front must call the backend Vercel **Preview** URL (`development`); prod front must call `https://backend-lumify.vercel.app`. See backend `docs/environments.md`.
 
 ## App Entry Points
 
