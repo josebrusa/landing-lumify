@@ -5,6 +5,7 @@ import * as leadsService from '@/services/leads.service'
 import { useLocaleStore } from '@/stores/locale'
 import type {
   HttpErrorBody,
+  LeadAssessmentAnalysis,
   LeadClosedReason,
   LeadInterestType,
   LeadItem,
@@ -171,6 +172,7 @@ export const useLeadsStore = defineStore('leads', () => {
     name?: string
     phone?: string
     message?: string
+    analysis?: LeadAssessmentAnalysis
     fallbackInterest: LeadInterestType
     fallbackContext?: LeadIntentFallback
   }) {
@@ -188,6 +190,7 @@ export const useLeadsStore = defineStore('leads', () => {
         ...(nameTrim ? { name: nameTrim } : {}),
         ...(phoneTrim ? { phone: phoneTrim } : {}),
         ...(messageTrim ? { message: messageTrim } : {}),
+        ...(payload.analysis ? { analysis: payload.analysis } : {}),
         email: payload.email.trim(),
         interestType: intent.interestType,
         sourcePage: intent.sourcePage,

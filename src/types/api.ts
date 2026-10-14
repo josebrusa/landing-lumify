@@ -73,6 +73,60 @@ export type LeadEmailDelivery = 'queued' | 'sent' | 'failed'
 export type LeadClosedReason = 'won' | 'lost' | 'no_fit' | 'spam' | 'other'
 export type LeadLocale = 'es' | 'en' | 'ca'
 
+/** Structured ecommerce assessment stored on the lead for Admin dossier. */
+export interface LeadAssessmentAnalysis {
+  url: string
+  reviewType: 'instant' | 'detailed'
+  areas: string[]
+  globalScore: number
+  maturity: 'critical' | 'improvable' | 'good' | 'excellent'
+  scores: Partial<Record<string, number>>
+  findings: Array<{
+    area: string
+    severity: 'ok' | 'warn' | 'error'
+    code: string
+    message: string
+  }>
+  evidence: {
+    title: string
+    metaDescription: string
+    h1: string
+    canonical: string
+    ogTitle: string
+    ogImage: string
+    lang: string
+    https: boolean
+    hasJsonLdProduct: boolean
+    hasGtin: boolean
+    hasSku: boolean
+    hasBrand: boolean
+    hasVariantsHint: boolean
+    hasSpecsHint: boolean
+    imageCount: number
+    imagesWithAlt: number
+    hasPdfLink: boolean
+    hasVideo: boolean
+    hasBuyButton: boolean
+    hasPrice: boolean
+    hasReturns: boolean
+    hasReviews: boolean
+    hasIva: boolean
+    hasVendor: boolean
+    hasGpsr: boolean
+    hasCe: boolean
+    hasCookies: boolean
+    bodyTextLength: number
+  }
+  answers?: Record<string, number>
+  source: 'html' | 'microlink'
+  analyzedAt: string
+  screenshots?: Array<{
+    label: 'desktop' | 'mobile'
+    key: string
+    url: string
+  }>
+}
+
 export interface CreateLeadBody {
   name?: string
   company?: string
@@ -86,6 +140,8 @@ export interface CreateLeadBody {
   sourceCta: string
   /** Visitor UI language; drives ack/reply localization. Default on API: es. */
   locale?: LeadLocale
+  /** Ecommerce assessment payload (Admin dossier). */
+  analysis?: LeadAssessmentAnalysis
 }
 
 export interface CreateLeadResponse {
@@ -107,6 +163,7 @@ export interface LeadItem {
   phone: string | null
   email: string
   message: string | null
+  analysis?: LeadAssessmentAnalysis | null
   interestType: LeadInterestType
   sourcePage: string
   sourceSection: string

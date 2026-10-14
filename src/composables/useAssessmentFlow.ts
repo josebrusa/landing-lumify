@@ -3,17 +3,19 @@ import {
   AREA_DEFS,
   QUESTION_DB,
   computeQuestionScores,
-  loc,
   type AssessmentAreaId,
   type ReviewType,
 } from '../data/assessmentContent'
 import {
   analyzeAssessment,
+  emptyEvidence,
   type AnalyzeFinding,
+  type AssessmentAnalysisPayload,
+  type AssessmentEvidence,
+  type AssessmentScreenshot,
   type MaturityBand,
 } from '../services/assessment.service'
 import { useLeadsStore } from '../stores/leads'
-import { useLocaleStore } from '../stores/locale'
 import { getApiErrorMessage } from '../utils/api-error'
 
 export type AssessmentStep =
@@ -29,59 +31,8 @@ function delay(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms))
 }
 
-function buildAnalysisMessage(input: {
-  url: string
-  reviewType: ReviewType
-  areas: AssessmentAreaId[]
-  globalScore: number
-  scores: Partial<Record<AssessmentAreaId, number>>
-  findings: AnalyzeFinding[]
-  answers: Record<string, number>
-  lang: 'es' | 'ca' | 'en'
-}): string {
-  const areaLabels = input.areas
-    .map((id) => AREA_DEFS.find((a) => a.id === id)?.labelKey ?? id)
-    .join(', ')
-  const scoreLines = input.areas
-    .map((id) => `  - ${id}: ${input.scores[id] ?? '—'}/100`)
-    .join('\n')
-  const critical = input.findings
-    .filter((f) => f.severity === 'error')
-    .map((f) => `  - [${f.area}] ${f.code}: ${f.message}`)
-    .join('\n')
-
-  let answersBlock = ''
-  if (input.reviewType === 'detailed') {
-    const parts: string[] = []
-    for (const area of input.areas) {
-      QUESTION_DB[area].forEach((q, qi) => {
-        const oi = input.answers[`${area}-${qi}`]
-        if (oi === undefined) return
-        parts.push(
-          `  - [${area}] ${loc(q.text, input.lang)}\n    → ${loc(q.opts[oi], input.lang)}`,
-        )
-      })
-    }
-    answersBlock = parts.length ? `\nQuestionnaire:\n${parts.join('\n')}` : ''
-  }
-
-  return [
-    'Ecommerce Assessment',
-    `Type: ${input.reviewType}`,
-    `URL: ${input.url}`,
-    `Areas keys: ${areaLabels}`,
-    `Global score: ${input.globalScore}/100`,
-    `Scores:\n${scoreLines}`,
-    critical ? `Critical findings:\n${critical}` : 'Critical findings: none',
-    answersBlock,
-  ]
-    .filter(Boolean)
-    .join('\n')
-}
-
 export function useAssessmentFlow() {
   const leads = useLeadsStore()
-  const localeStore = useLocaleStore()
 
   const step = ref<AssessmentStep>('urlAreas')
   const url = ref('')
@@ -99,6 +50,10 @@ export function useAssessmentFlow() {
   const maturity = ref<MaturityBand>('critical')
   const findings = ref<AnalyzeFinding[]>([])
   const analyzedUrl = ref('')
+  const evidence = ref<AssessmentEvidence>(emptyEvidence())
+  const screenshots = ref<AssessmentScreenshot[]>([])
+  const analyzeSource = ref<'html' | 'microlink'>('html')
+  const urlAnalyzed = ref(false)
   const setupError = ref(false)
   const typeError = ref(false)
   const questionsError = ref(false)
@@ -231,11 +186,36 @@ export function useAssessmentFlow() {
     maturity.value = result.maturity
     findings.value = result.findings
     analyzedUrl.value = result.url
+    evidence.value = result.evidence ?? emptyEvidence()
+    screenshots.value = result.screenshots ?? []
+    analyzeSource.value = result.source
+    urlAnalyzed.value = true
     await finishLoading(3, 400)
     await markLoading(4)
     await finishLoading(4, 300)
 
     goTo('results', { dot: 2, pct: 70, detailedDots: false })
+  }
+
+  async function ensureUrlAnalyzed() {
+    if (urlAnalyzed.value) return
+    const result = await analyzeAssessment({
+      url: url.value.trim(),
+      areas: selectedAreaList.value,
+    })
+    analyzedUrl.value = result.url
+    evidence.value = result.evidence ?? emptyEvidence()
+    screenshots.value = result.screenshots ?? []
+    analyzeSource.value = result.source
+    findings.value = result.findings
+    urlAnalyzed.value = true
+    // Detailed keeps questionnaire scores; instant uses API scores (already set)
+    if (reviewType.value !== 'detailed') {
+      Object.keys(scores).forEach((k) => delete scores[k as AssessmentAreaId])
+      Object.assign(scores, result.scores)
+      globalScore.value = result.globalScore
+      maturity.value = result.maturity
+    }
   }
 
   function runDetailed() {
@@ -285,22 +265,45 @@ export function useAssessmentFlow() {
     submitError.value = null
     submitting.value = true
 
+    try {
+      await ensureUrlAnalyzed()
+    } catch (e) {
+      submitError.value = getApiErrorMessage(e) || 'Analysis failed'
+      submitting.value = false
+      return
+    }
+
     const fullUrl =
       analyzedUrl.value ||
       (url.value.trim().startsWith('http')
         ? url.value.trim()
         : `https://${url.value.trim()}`)
 
-    const message = buildAnalysisMessage({
+    const review = (reviewType.value || 'instant') as ReviewType
+    const analysis: AssessmentAnalysisPayload = {
       url: fullUrl,
-      reviewType: (reviewType.value || 'instant') as ReviewType,
+      reviewType: review,
       areas: selectedAreaList.value,
       globalScore: globalScore.value,
+      maturity: maturity.value,
       scores: { ...scores },
       findings: findings.value,
-      answers: { ...answers },
-      lang: localeStore.lang,
-    })
+      evidence: evidence.value,
+      ...(review === 'detailed' ? { answers: { ...answers } } : {}),
+      source: analyzeSource.value,
+      analyzedAt: new Date().toISOString(),
+      ...(screenshots.value.length ? { screenshots: screenshots.value } : {}),
+    }
+
+    // Short legacy summary; full dossier lives in `analysis` JSON for Admin.
+    const message = [
+      'Ecommerce Assessment',
+      `Type: ${review}`,
+      `URL: ${fullUrl}`,
+      `Global score: ${globalScore.value}/100`,
+      `Areas: ${selectedAreaList.value.join(', ')}`,
+      'See analysis payload in Admin lead detail for full dossier.',
+    ].join('\n')
 
     try {
       leads.registerIntent({
@@ -317,6 +320,7 @@ export function useAssessmentFlow() {
         name: name.value,
         phone: phone.value,
         message,
+        analysis,
         fallbackInterest: 'ecommerce_assessment',
         fallbackContext: {
           sourcePage: 'home',

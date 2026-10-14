@@ -5,6 +5,7 @@ import { useI18n } from '@/composables/useI18n'
 import { useLeadsStore } from '@/stores/leads'
 import { useCrmStore } from '@/stores/crm'
 import AdminModal from '@/components/admin/AdminModal.vue'
+import AdminAssessmentDossier from '@/components/admin/AdminAssessmentDossier.vue'
 import type { AxiosError } from 'axios'
 import type { LeadClosedReason, LeadEmailDelivery, LeadInterestType, LeadStatus, HttpErrorBody } from '@/types/api'
 import {
@@ -329,7 +330,7 @@ const btnSecondary =
                 <span v-else class="text-text-muted">{{ lead.phone || '—' }}</span>
               </dd>
             </div>
-            <div v-if="lead.message">
+            <div v-if="lead.message && !lead.analysis">
               <dt class="text-text-muted">{{ t('admin.leads.field_message') }}</dt>
               <dd class="text-text whitespace-pre-wrap">{{ lead.message }}</dd>
             </div>
@@ -363,6 +364,11 @@ const btnSecondary =
           </dl>
         </section>
       </div>
+
+      <AdminAssessmentDossier
+        v-if="lead.interestType === 'ecommerce_assessment' && lead.analysis"
+        :analysis="lead.analysis"
+      />
 
       <!-- Timeline -->
       <section class="rounded-radius border border-gray-light bg-white p-5 mb-4">
