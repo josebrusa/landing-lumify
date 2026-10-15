@@ -37,7 +37,7 @@ const { t } = useI18n()
         <span class="text-text-muted min-w-[90px] shrink-0">{{
           t('assess.confirm.url')
         }}</span>
-        <span class="text-deep font-medium break-all">https://{{ url }}</span>
+        <span class="text-deep font-medium break-all">{{ url }}</span>
       </div>
       <div
         class="flex gap-2.5 py-2 border-b border-gray-light text-[13px] last:border-b-0"

@@ -18,6 +18,7 @@ import {
 } from '../services/assessment.service'
 import { useLeadsStore } from '../stores/leads'
 import { getApiErrorMessage } from '../utils/api-error'
+import { toAbsoluteAssessmentUrl } from '../utils/assessment-url'
 
 export type AssessmentStep =
   | 'urlAreas'
@@ -68,9 +69,11 @@ export function useAssessmentFlow() {
   const activeDot = ref(1)
   const showDetailedDots = ref(false)
 
+  const absoluteUrl = computed(() => toAbsoluteAssessmentUrl(url.value))
+
   const urlValid = computed(() => {
-    const u = url.value.trim()
-    return u.length > 3 && u.includes('.')
+    const u = absoluteUrl.value
+    return u.length > 10 && u.includes('.')
   })
 
   const urlAreasValid = computed(() => urlValid.value && selectedAreas.value.size > 0)
@@ -168,7 +171,7 @@ export function useAssessmentFlow() {
     let result
     try {
       const analyzePromise = analyzeAssessment({
-        url: url.value.trim(),
+        url: absoluteUrl.value,
         areas: selectedAreaList.value,
       })
       await finishLoading(0, 400)
@@ -204,7 +207,7 @@ export function useAssessmentFlow() {
   async function ensureUrlAnalyzed() {
     if (urlAnalyzed.value) return
     const result = await analyzeAssessment({
-      url: url.value.trim(),
+      url: absoluteUrl.value,
       areas: selectedAreaList.value,
     })
     analyzedUrl.value = result.url
@@ -277,11 +280,7 @@ export function useAssessmentFlow() {
       return
     }
 
-    const fullUrl =
-      analyzedUrl.value ||
-      (url.value.trim().startsWith('http')
-        ? url.value.trim()
-        : `https://${url.value.trim()}`)
+    const fullUrl = analyzedUrl.value || absoluteUrl.value
 
     const review = (reviewType.value || 'instant') as ReviewType
     const analysis: AssessmentAnalysisPayload = {
@@ -363,6 +362,7 @@ export function useAssessmentFlow() {
     maturity,
     findings,
     analyzedUrl,
+    absoluteUrl,
     setupError,
     typeError,
     questionsError,

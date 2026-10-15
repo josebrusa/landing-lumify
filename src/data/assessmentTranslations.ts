@@ -8,7 +8,7 @@ export const assessmentEs: Record<string, string> = {
     'Pega la URL de tu tienda, elige el tipo de revisión y las áreas que te interesan.',
   'assess.setup.desc_url':
     'Pega la URL de la ficha de producto (PDP) y selecciona las áreas que quieres diagnosticar.',
-  'assess.setup.url_ph': 'tutienda.com/producto',
+  'assess.setup.url_ph': 'https://tutienda.com/producto',
   'assess.setup.error_url': 'Introduce una URL y selecciona al menos un área.',
   'assess.setup.cta_continue': 'Continuar →',
   'assess.type.label': 'Tipo de revisión',
@@ -148,7 +148,7 @@ export const assessmentCa: Record<string, string> = {
     'Enganxa l’URL de la teva botiga, tria el tipus de revisió i les àrees que t’interessin.',
   'assess.setup.desc_url':
     'Enganxa l’URL de la fitxa de producte (PDP) i selecciona les àrees que vols diagnosticar.',
-  'assess.setup.url_ph': 'latenda.com/producte',
+  'assess.setup.url_ph': 'https://latenda.com/producte',
   'assess.setup.error_url': 'Introdueix una URL i selecciona almenys una àrea.',
   'assess.setup.cta_continue': 'Continuar →',
   'assess.type.label': 'Tipus de revisió',
@@ -288,7 +288,7 @@ export const assessmentEn: Record<string, string> = {
     'Paste your store URL, choose the review type and the areas you care about.',
   'assess.setup.desc_url':
     'Paste the product page (PDP) URL and select the areas you want to diagnose.',
-  'assess.setup.url_ph': 'yourstore.com/product',
+  'assess.setup.url_ph': 'https://yourstore.com/product',
   'assess.setup.error_url': 'Enter a URL and select at least one area.',
   'assess.setup.cta_continue': 'Continue →',
   'assess.type.label': 'Review type',

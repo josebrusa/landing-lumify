@@ -199,7 +199,7 @@ const btnSecondary =
 </script>
 
 <template>
-  <div class="max-w-4xl">
+  <div class="w-full">
     <button
       type="button"
       class="mb-4 rounded-radius-sm border border-gray-light bg-white px-3 py-1.5 text-xs font-semibold text-text hover:bg-surface"

@@ -53,18 +53,14 @@ function isSelected(id: AssessmentAreaId) {
     </p>
   </div>
 
-  <div class="relative mt-6 mb-5">
-    <span
-      class="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-text-muted pointer-events-none"
-    >
-      https://
-    </span>
+  <div class="mt-6 mb-5">
     <input
       :value="url"
       type="text"
-      autocomplete="off"
+      autocomplete="url"
+      inputmode="url"
       :placeholder="t('assess.setup.url_ph')"
-      class="w-full min-h-[52px] pl-20 pr-4 py-3.5 bg-white border-[1.5px] border-gray-light rounded-radius text-[0.95rem] text-deep outline-none transition-[border-color] focus:border-blue placeholder:text-text-muted/40"
+      class="w-full min-h-[52px] px-4 py-3.5 bg-white border-[1.5px] border-gray-light rounded-radius text-[0.95rem] text-deep outline-none transition-[border-color] focus:border-blue placeholder:text-text-muted/40"
       @input="emit('update:url', ($event.target as HTMLInputElement).value)"
     />
   </div>
@@ -79,7 +75,7 @@ function isSelected(id: AssessmentAreaId) {
       v-for="area in AREA_DEFS"
       :key="area.id"
       type="button"
-      class="relative text-left bg-white border-[1.5px] rounded-radius p-4 transition-all cursor-pointer"
+      class="text-left bg-white border-[1.5px] rounded-radius p-4 transition-all cursor-pointer"
       :class="[
         area.highlight ? 'sm:col-span-2' : '',
         isSelected(area.id)
@@ -88,35 +84,38 @@ function isSelected(id: AssessmentAreaId) {
       ]"
       @click="emit('toggleArea', area.id)"
     >
-      <span
-        v-if="area.highlight"
-        class="absolute top-3 left-3 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-blue/15 text-blue border border-blue/30"
-      >
-        {{ t('assess.area.compliance.new') }}
-      </span>
-      <span
-        class="absolute top-3 right-3 w-4 h-4 rounded-full border-[1.5px] flex items-center justify-center"
-        :class="
-          isSelected(area.id)
-            ? 'bg-blue border-blue text-white'
-            : 'border-gray-light text-transparent'
-        "
-      >
-        <PhCheck v-if="isSelected(area.id)" :size="10" weight="bold" />
-      </span>
-      <div
-        class="w-8 h-8 rounded-[9px] flex items-center justify-center mb-2 text-deep"
-        :class="isSelected(area.id) ? 'bg-blue/20 text-blue' : 'bg-surface'"
-      >
-        <component :is="areaIcons[area.id]" :size="16" weight="regular" />
+      <div class="flex items-start gap-3">
+        <div
+          class="w-8 h-8 shrink-0 rounded-[9px] flex items-center justify-center text-deep"
+          :class="isSelected(area.id) ? 'bg-blue/20 text-blue' : 'bg-surface'"
+        >
+          <component :is="areaIcons[area.id]" :size="16" weight="regular" />
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="flex flex-wrap items-center gap-2 mb-1 pr-1">
+            <span
+              v-if="area.highlight"
+              class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-blue/15 text-blue border border-blue/30 whitespace-nowrap"
+            >
+              {{ t('assess.area.compliance.new') }}
+            </span>
+            <span class="font-heading font-bold text-[13px] text-deep">
+              {{ t(area.labelKey) }}
+            </span>
+          </div>
+          <p class="text-[11px] text-text-muted leading-[1.4]">{{ t(area.subKey) }}</p>
+        </div>
+        <span
+          class="w-4 h-4 shrink-0 mt-0.5 rounded-full border-[1.5px] flex items-center justify-center"
+          :class="
+            isSelected(area.id)
+              ? 'bg-blue border-blue text-white'
+              : 'border-gray-light text-transparent'
+          "
+        >
+          <PhCheck v-if="isSelected(area.id)" :size="10" weight="bold" />
+        </span>
       </div>
-      <div
-        class="font-heading font-bold text-[13px] text-deep mb-1"
-        :class="area.highlight ? 'mt-4' : ''"
-      >
-        {{ t(area.labelKey) }}
-      </div>
-      <p class="text-[11px] text-text-muted leading-[1.4] pr-5">{{ t(area.subKey) }}</p>
     </button>
   </div>
 

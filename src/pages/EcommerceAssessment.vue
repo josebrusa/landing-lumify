@@ -29,6 +29,7 @@ const {
   globalScore,
   findings,
   analyzedUrl,
+  absoluteUrl,
   setupError,
   typeError,
   questionsError,
@@ -66,7 +67,7 @@ const dots = computed(() => {
   return Array.from({ length: max }, (_, i) => i + 1)
 })
 
-const displayUrl = computed(() => analyzedUrl.value || url.value)
+const displayUrl = computed(() => analyzedUrl.value || absoluteUrl.value)
 </script>
 
 <template>
@@ -136,7 +137,7 @@ const displayUrl = computed(() => analyzedUrl.value || url.value)
 
       <AssessmentLoading
         v-else-if="step === 'loading'"
-        :url="url"
+        :url="displayUrl"
         :loading-index="loadingIndex"
         :loading-done="loadingDone"
       />

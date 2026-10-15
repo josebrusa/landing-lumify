@@ -24,8 +24,8 @@ const steps = [
     <p class="text-xs font-bold tracking-[2px] uppercase text-blue mb-3.5">
       {{ t('assess.loading.label') }}
     </p>
-    <p class="text-sm text-text-muted font-mono mb-7">
-      https://<span class="text-blue">{{ url }}</span>
+    <p class="text-sm text-text-muted font-mono mb-7 break-all">
+      <span class="text-blue">{{ url }}</span>
     </p>
     <div class="flex flex-col gap-2.5 max-w-[340px] mx-auto">
       <div
