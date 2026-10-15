@@ -73,6 +73,51 @@ export type LeadEmailDelivery = 'queued' | 'sent' | 'failed'
 export type LeadClosedReason = 'won' | 'lost' | 'no_fit' | 'spam' | 'other'
 export type LeadLocale = 'es' | 'en' | 'ca'
 
+export type AuditPackKey =
+  | 'pack-health'
+  | 'pack-datos'
+  | 'pack-omni'
+  | 'pack-beauty'
+
+export interface LeadAssessmentAuditReport {
+  locale: 'es'
+  confidence: 'partial' | 'full'
+  verdict: {
+    band: 'critical' | 'improvable' | 'good' | 'excellent'
+    headline: string
+    summary: string
+  }
+  dimensionScores: Array<{
+    id: string
+    label: string
+    score: number
+    note: string
+  }>
+  gaps: Array<{
+    id: string
+    area: string
+    severity: 'error' | 'warn' | 'info'
+    title: string
+    impact: string
+    evidenceNote: string
+    source: 'url' | 'questionnaire' | 'combined'
+  }>
+  proposal: {
+    primaryPack: AuditPackKey
+    secondaryPacks: AuditPackKey[]
+    discoveryCall: boolean
+    rationale: string
+    talkingPoints: string[]
+  }
+  roadmap: {
+    quickWins: string[]
+    days30: string[]
+    days60: string[]
+    days90: string[]
+  }
+  clientEmailDraft: string
+}
+
 /** Structured ecommerce assessment stored on the lead for Admin dossier. */
 export interface LeadAssessmentAnalysis {
   url: string
@@ -121,10 +166,15 @@ export interface LeadAssessmentAnalysis {
   source: 'html' | 'microlink'
   analyzedAt: string
   screenshots?: Array<{
-    label: 'desktop' | 'mobile'
+    label: 'desktop' | 'mobile' | 'identity' | 'specs' | 'docs' | 'gallery'
     key: string
     url: string
+    role?: 'context' | 'evidence'
+    focus?: 'pdp' | 'identity' | 'specs' | 'docs' | 'gallery'
+    note?: string
+    relatedFindingCodes?: string[]
   }>
+  report?: LeadAssessmentAuditReport
 }
 
 export interface CreateLeadBody {

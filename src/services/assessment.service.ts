@@ -41,12 +41,30 @@ export interface AssessmentEvidence {
   bodyTextLength: number
 }
 
-export type AssessmentScreenshotLabel = 'desktop' | 'mobile'
+export type AssessmentScreenshotLabel =
+  | 'desktop'
+  | 'mobile'
+  | 'identity'
+  | 'specs'
+  | 'docs'
+  | 'gallery'
+
+export type AssessmentScreenshotRole = 'context' | 'evidence'
+export type AssessmentScreenshotFocus =
+  | 'pdp'
+  | 'identity'
+  | 'specs'
+  | 'docs'
+  | 'gallery'
 
 export interface AssessmentScreenshot {
   label: AssessmentScreenshotLabel
   key: string
   url: string
+  role?: AssessmentScreenshotRole
+  focus?: AssessmentScreenshotFocus
+  note?: string
+  relatedFindingCodes?: string[]
 }
 
 export interface AnalyzeResponse {

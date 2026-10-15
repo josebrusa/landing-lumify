@@ -1,27 +1,65 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import {
   AREA_DEFS,
+  CONTEXT_QUESTIONS,
   QUESTION_DB,
   loc,
   type AssessmentAreaId,
 } from '@/data/assessmentContent'
 import { useI18n } from '@/composables/useI18n'
 import { useLocaleStore } from '@/stores/locale'
-import type { LeadAssessmentAnalysis } from '@/types/api'
+import { useLeadsStore } from '@/stores/leads'
+import type { AuditPackKey, LeadAssessmentAnalysis } from '@/types/api'
 
 const props = defineProps<{
   analysis: LeadAssessmentAnalysis
+  leadId?: string
 }>()
 
 const { t } = useI18n()
 const localeStore = useLocaleStore()
+const leadsStore = useLeadsStore()
 
 const AREA_ORDER: AssessmentAreaId[] = ['pim', 'dam', 'seo', 'ux', 'compliance']
+
+const PACK_LABEL_KEYS: Record<AuditPackKey, string> = {
+  'pack-health': 'admin.assessment.pack_health',
+  'pack-datos': 'admin.assessment.pack_datos',
+  'pack-omni': 'admin.assessment.pack_omni',
+  'pack-beauty': 'admin.assessment.pack_beauty',
+}
+
+const report = computed(() => props.analysis.report)
+const regenerating = ref(false)
+const regenerateError = ref<string | null>(null)
+const copyDone = ref(false)
 
 const evidence = computed(() => props.analysis.evidence)
 
 const screenshotItems = computed(() => props.analysis.screenshots ?? [])
+
+const evidenceShots = computed(() =>
+  screenshotItems.value.filter(
+    (s) => s.role === 'evidence' || (s.focus && s.focus !== 'pdp'),
+  ),
+)
+
+const contextShots = computed(() =>
+  screenshotItems.value.filter(
+    (s) =>
+      s.role === 'context' ||
+      s.label === 'desktop' ||
+      s.label === 'mobile' ||
+      (!s.role && !s.focus),
+  ),
+)
+
+function screenshotLabel(shot: (typeof screenshotItems.value)[number]): string {
+  const key = `admin.assessment.screenshot_${shot.label}` as const
+  const translated = t(key)
+  return translated === key ? shot.label : translated
+}
 
 const orderedAreas = computed(() => {
   const selected = new Set(props.analysis.areas)
@@ -66,6 +104,15 @@ const questionnaireRows = computed(() => {
   if (props.analysis.reviewType !== 'detailed' || !props.analysis.answers) return []
   const lang = localeStore.lang
   const rows: { area: string; question: string; answer: string }[] = []
+  CONTEXT_QUESTIONS.forEach((q, qi) => {
+    const oi = props.analysis.answers?.[`context-${qi}`]
+    if (oi === undefined) return
+    rows.push({
+      area: t('assess.q.context'),
+      question: loc(q.text, lang),
+      answer: loc(q.opts[oi], lang),
+    })
+  })
   for (const area of AREA_ORDER) {
     if (!props.analysis.areas.includes(area)) continue
     QUESTION_DB[area].forEach((q, qi) => {
@@ -88,7 +135,39 @@ function flag(v: boolean | undefined) {
 function severityClass(severity: string) {
   if (severity === 'error') return 'text-red-700 bg-red-50 border-red-100'
   if (severity === 'warn') return 'text-orange-700 bg-orange-50 border-orange-100'
+  if (severity === 'info') return 'text-slate-700 bg-slate-50 border-slate-100'
   return 'text-emerald-700 bg-emerald-50 border-emerald-100'
+}
+
+function packLabel(key: AuditPackKey) {
+  return t(PACK_LABEL_KEYS[key])
+}
+
+async function copyDraft() {
+  const text = report.value?.clientEmailDraft
+  if (!text) return
+  try {
+    await navigator.clipboard.writeText(text)
+    copyDone.value = true
+    window.setTimeout(() => {
+      copyDone.value = false
+    }, 2000)
+  } catch {
+    copyDone.value = false
+  }
+}
+
+async function regenerate() {
+  if (!props.leadId) return
+  regenerating.value = true
+  regenerateError.value = null
+  try {
+    await leadsStore.regenerateLeadReport(props.leadId)
+  } catch (e) {
+    regenerateError.value = e instanceof Error ? e.message : t('admin.assessment.regenerate_error')
+  } finally {
+    regenerating.value = false
+  }
 }
 </script>
 
@@ -135,14 +214,229 @@ function severityClass(severity: string) {
       </div>
     </dl>
 
-    <!-- Screenshots -->
-    <template v-if="screenshotItems.length">
+    <!-- Audit report (commercial) -->
+    <div
+      v-if="report"
+      class="rounded-radius border border-blue/30 bg-blue/5 p-4 mb-5 space-y-4"
+    >
+      <div class="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <h3 class="text-xs font-semibold uppercase tracking-wide text-blue mb-1">
+            {{ t('admin.assessment.report_title') }}
+          </h3>
+          <p class="text-xs text-text-muted">
+            {{
+              report.confidence === 'full'
+                ? t('admin.assessment.confidence_full')
+                : t('admin.assessment.confidence_partial')
+            }}
+          </p>
+        </div>
+        <button
+          v-if="leadId"
+          type="button"
+          class="text-xs font-semibold text-deep underline disabled:opacity-50"
+          :disabled="regenerating"
+          @click="regenerate"
+        >
+          {{ regenerating ? t('admin.assessment.regenerating') : t('admin.assessment.regenerate') }}
+        </button>
+      </div>
+      <p v-if="regenerateError" class="text-xs text-red-600">{{ regenerateError }}</p>
+
+      <div>
+        <p class="font-heading text-base font-bold text-deep">{{ report.verdict.headline }}</p>
+        <p class="text-sm text-text mt-1 leading-relaxed">{{ report.verdict.summary }}</p>
+      </div>
+
+      <div>
+        <h4 class="text-xs font-semibold uppercase tracking-wide text-text-muted mb-2">
+          {{ t('admin.assessment.proposal') }}
+        </h4>
+        <p class="text-sm font-semibold text-deep">
+          {{ packLabel(report.proposal.primaryPack) }}
+          <span
+            v-if="report.proposal.discoveryCall"
+            class="ml-2 text-[11px] font-medium text-orange-700 bg-orange-50 border border-orange-100 rounded-full px-2 py-0.5"
+          >
+            {{ t('admin.assessment.discovery_call') }}
+          </span>
+        </p>
+        <p class="text-sm text-text mt-1">{{ report.proposal.rationale }}</p>
+        <ul
+          v-if="report.proposal.secondaryPacks.length"
+          class="mt-2 text-xs text-text-muted list-disc pl-4"
+        >
+          <li v-for="p in report.proposal.secondaryPacks" :key="p">
+            {{ t('admin.assessment.secondary') }}: {{ packLabel(p) }}
+          </li>
+        </ul>
+        <ul class="mt-2 space-y-1">
+          <li
+            v-for="(tp, i) in report.proposal.talkingPoints"
+            :key="i"
+            class="text-xs text-text border border-gray-light rounded-radius px-2.5 py-2 bg-white"
+          >
+            {{ tp }}
+          </li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="text-xs font-semibold uppercase tracking-wide text-text-muted mb-2">
+          {{ t('admin.assessment.gaps') }}
+        </h4>
+        <ul class="space-y-1.5">
+          <li
+            v-for="g in report.gaps"
+            :key="g.id"
+            class="text-xs border rounded-radius px-2.5 py-2"
+            :class="severityClass(g.severity)"
+          >
+            <p class="font-semibold">{{ g.title }}</p>
+            <p class="mt-0.5 opacity-90">{{ g.impact }}</p>
+            <p class="mt-1 text-[11px] opacity-70">
+              {{ g.source }} · {{ g.evidenceNote }}
+            </p>
+          </li>
+        </ul>
+      </div>
+
+      <div v-if="evidenceShots.length">
+        <h4 class="text-xs font-semibold uppercase tracking-wide text-text-muted mb-2">
+          {{ t('admin.assessment.visual_evidence') }}
+        </h4>
+        <p class="text-[11px] text-text-muted mb-2">
+          {{ t('admin.assessment.visual_evidence_hint') }}
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <a
+            v-for="shot in evidenceShots"
+            :key="shot.key"
+            :href="shot.url"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="block rounded-radius border border-blue/30 overflow-hidden bg-white hover:border-blue/60 transition-colors"
+          >
+            <img
+              :src="shot.url"
+              :alt="screenshotLabel(shot)"
+              class="w-full h-44 object-cover object-top bg-gray-light"
+              loading="lazy"
+            />
+            <div class="px-2.5 py-2">
+              <p class="text-xs font-semibold text-deep">{{ screenshotLabel(shot) }}</p>
+              <p v-if="shot.note" class="text-[11px] text-text-muted mt-0.5">{{ shot.note }}</p>
+              <p
+                v-if="shot.relatedFindingCodes?.length"
+                class="text-[10px] text-blue mt-1"
+              >
+                {{ shot.relatedFindingCodes.join(' · ') }}
+              </p>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <div>
+        <h4 class="text-xs font-semibold uppercase tracking-wide text-text-muted mb-2">
+          {{ t('admin.assessment.dimensions') }}
+        </h4>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div
+            v-for="d in report.dimensionScores"
+            :key="d.id"
+            class="rounded-radius border border-gray-light bg-white p-2.5"
+          >
+            <div class="flex justify-between text-xs font-semibold text-deep mb-1">
+              <span>{{ d.label }}</span>
+              <span>{{ d.score }}</span>
+            </div>
+            <p class="text-[11px] text-text-muted">{{ d.note }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h4 class="text-xs font-semibold uppercase tracking-wide text-text-muted mb-2">
+          {{ t('admin.assessment.roadmap') }}
+        </h4>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+          <div class="border border-gray-light rounded-radius p-2.5 bg-white">
+            <p class="font-semibold text-deep mb-1">{{ t('admin.assessment.quick_wins') }}</p>
+            <ul class="list-disc pl-4 space-y-0.5 text-text">
+              <li v-for="(x, i) in report.roadmap.quickWins" :key="i">{{ x }}</li>
+            </ul>
+          </div>
+          <div class="border border-gray-light rounded-radius p-2.5 bg-white">
+            <p class="font-semibold text-deep mb-1">30</p>
+            <ul class="list-disc pl-4 space-y-0.5 text-text">
+              <li v-for="(x, i) in report.roadmap.days30" :key="i">{{ x }}</li>
+            </ul>
+          </div>
+          <div class="border border-gray-light rounded-radius p-2.5 bg-white">
+            <p class="font-semibold text-deep mb-1">60</p>
+            <ul class="list-disc pl-4 space-y-0.5 text-text">
+              <li v-for="(x, i) in report.roadmap.days60" :key="i">{{ x }}</li>
+            </ul>
+          </div>
+          <div class="border border-gray-light rounded-radius p-2.5 bg-white">
+            <p class="font-semibold text-deep mb-1">90</p>
+            <ul class="list-disc pl-4 space-y-0.5 text-text">
+              <li v-for="(x, i) in report.roadmap.days90" :key="i">{{ x }}</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="flex items-center justify-between gap-2 mb-2">
+          <h4 class="text-xs font-semibold uppercase tracking-wide text-text-muted">
+            {{ t('admin.assessment.email_draft') }}
+          </h4>
+          <button
+            type="button"
+            class="text-xs font-semibold px-2.5 py-1 rounded-radius bg-deep text-white"
+            @click="copyDraft"
+          >
+            {{ copyDone ? t('admin.assessment.copied') : t('admin.assessment.copy_draft') }}
+          </button>
+        </div>
+        <pre
+          class="text-[11px] whitespace-pre-wrap break-words border border-gray-light rounded-radius p-3 bg-white text-text max-h-56 overflow-auto"
+          >{{ report.clientEmailDraft }}</pre
+        >
+      </div>
+    </div>
+
+    <div
+      v-else-if="leadId"
+      class="rounded-radius border border-dashed border-gray-light p-4 mb-5 text-sm"
+    >
+      <p class="text-text-muted mb-2">{{ t('admin.assessment.no_report') }}</p>
+      <button
+        type="button"
+        class="text-xs font-semibold px-3 py-1.5 rounded-radius bg-deep text-white disabled:opacity-50"
+        :disabled="regenerating"
+        @click="regenerate"
+      >
+        {{ regenerating ? t('admin.assessment.regenerating') : t('admin.assessment.generate_report') }}
+      </button>
+      <p v-if="regenerateError" class="text-xs text-red-600 mt-2">{{ regenerateError }}</p>
+    </div>
+
+    <h3 class="text-xs font-semibold uppercase tracking-wide text-text-muted mb-2">
+      {{ t('admin.assessment.technical_annex') }}
+    </h3>
+
+    <!-- Context screenshots (full PDP) -->
+    <template v-if="contextShots.length">
       <h3 class="text-xs font-semibold uppercase tracking-wide text-text-muted mb-2">
-        {{ t('admin.assessment.screenshots') }}
+        {{ t('admin.assessment.screenshots_context') }}
       </h3>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
         <a
-          v-for="shot in screenshotItems"
+          v-for="shot in contextShots"
           :key="shot.key"
           :href="shot.url"
           target="_blank"
@@ -151,16 +445,12 @@ function severityClass(severity: string) {
         >
           <img
             :src="shot.url"
-            :alt="shot.label"
+            :alt="screenshotLabel(shot)"
             class="w-full h-40 object-cover object-top bg-gray-light"
             loading="lazy"
           />
-          <p class="text-xs font-semibold text-text px-2.5 py-2 capitalize">
-            {{
-              shot.label === 'mobile'
-                ? t('admin.assessment.screenshot_mobile')
-                : t('admin.assessment.screenshot_desktop')
-            }}
+          <p class="text-xs font-semibold text-text px-2.5 py-2">
+            {{ screenshotLabel(shot) }}
           </p>
         </a>
       </div>
