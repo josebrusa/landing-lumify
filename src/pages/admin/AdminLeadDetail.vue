@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from '@/composables/useI18n'
 import { useLeadsStore } from '@/stores/leads'
 import { useCrmStore } from '@/stores/crm'
+import { useToastStore } from '@/stores/toast'
 import AdminModal from '@/components/admin/AdminModal.vue'
 import AdminAssessmentDossier from '@/components/admin/AdminAssessmentDossier.vue'
 import type { AxiosError } from 'axios'
@@ -21,6 +22,7 @@ const router = useRouter()
 const { t } = useI18n()
 const leadsStore = useLeadsStore()
 const crmStore = useCrmStore()
+const toast = useToastStore()
 
 const leadId = computed(() => String(route.params.id ?? ''))
 const lead = computed(() => leadsStore.leadDetail)
@@ -29,6 +31,7 @@ const leadTelHref = computed(() => safeTelHref(lead.value?.phone))
 
 const replying = ref(false)
 const closing = ref(false)
+const deleting = ref(false)
 const replyMessage = ref('')
 const closeReason = ref<LeadClosedReason>('other')
 const actionError = ref<string | null>(null)
@@ -55,7 +58,6 @@ watch(
   leadId,
   async (id) => {
     if (!id) return
-    await leadsStore.fetchLeadDetail(id)
     await leadsStore.fetchLeadDetail(id)
   },
   { immediate: true },
@@ -86,6 +88,9 @@ const canClose = computed(() => {
   return s === 'new' || s === 'in_progress' || s === 'answered'
 })
 const isTerminal = computed(() => lead.value?.status === 'closed' || Boolean(lead.value?.deletedAt))
+const showInitialLoading = computed(
+  () => leadsStore.leadDetailLoading && !lead.value && !leadsStore.leadDetailError,
+)
 
 const primaryAction = computed(() => {
   if (!lead.value) return null
@@ -95,22 +100,29 @@ const primaryAction = computed(() => {
   return 'convert' as const
 })
 
-async function runAction(fn: () => Promise<void>) {
+function formatActionError(e: unknown): string {
+  const ax = e as AxiosError<HttpErrorBody>
+  const msg = ax.response?.data?.message
+  return (
+    (Array.isArray(msg) ? msg.join(', ') : typeof msg === 'string' ? msg : ax.message) ||
+    'Request failed'
+  )
+}
+
+async function runAction(fn: () => Promise<void>, successMessage?: string) {
   actionLoading.value = true
   actionError.value = null
   try {
     await fn()
     if (leadId.value) {
       await leadsStore.fetchLeadDetail(leadId.value)
-      await leadsStore.refreshAdminTable()
-      await leadsStore.fetchSummary()
+      leadsStore.invalidateAdminLists()
     }
+    if (successMessage) toast.success(successMessage)
   } catch (e) {
-    const ax = e as AxiosError<HttpErrorBody>
-    const msg = ax.response?.data?.message
-    actionError.value =
-      (Array.isArray(msg) ? msg.join(', ') : typeof msg === 'string' ? msg : ax.message) ||
-      'Request failed'
+    const message = formatActionError(e)
+    actionError.value = message
+    toast.error(message)
   } finally {
     actionLoading.value = false
   }
@@ -118,7 +130,7 @@ async function runAction(fn: () => Promise<void>) {
 
 async function startLead() {
   if (!leadId.value) return
-  await runAction(() => leadsStore.startLead(leadId.value))
+  await runAction(() => leadsStore.startLead(leadId.value), t('admin.leads.toast_started'))
 }
 
 function openReply() {
@@ -132,7 +144,7 @@ async function submitReply() {
   if (!msg) return
   await runAction(async () => {
     await leadsStore.replyLead(leadId.value, msg)
-  })
+  }, t('admin.leads.toast_replied'))
   replying.value = false
 }
 
@@ -143,21 +155,43 @@ function openClose() {
 
 async function submitClose() {
   if (!leadId.value) return
-  await runAction(() => leadsStore.closeLead(leadId.value, closeReason.value))
+  await runAction(
+    () => leadsStore.closeLead(leadId.value, closeReason.value),
+    t('admin.leads.toast_closed'),
+  )
   closing.value = false
 }
 
 async function toggleArchive() {
   if (!leadId.value || !lead.value) return
-  if (lead.value.archivedAt) await runAction(() => leadsStore.unarchiveLead(leadId.value))
-  else await runAction(() => leadsStore.archiveLead(leadId.value))
+  if (lead.value.archivedAt) {
+    await runAction(() => leadsStore.unarchiveLead(leadId.value), t('admin.leads.toast_unarchived'))
+  } else {
+    await runAction(() => leadsStore.archiveLead(leadId.value), t('admin.leads.toast_archived'))
+  }
 }
 
-async function deleteLead() {
+function openDelete() {
+  deleting.value = true
+}
+
+async function submitDelete() {
   if (!leadId.value) return
-  if (!confirm(t('admin.leads.delete_confirm'))) return
-  await runAction(() => leadsStore.deleteLead(leadId.value))
-  router.push({ name: 'admin-home' })
+  actionLoading.value = true
+  actionError.value = null
+  try {
+    await leadsStore.deleteLead(leadId.value)
+    leadsStore.invalidateAdminLists()
+    deleting.value = false
+    toast.success(t('admin.leads.toast_deleted'))
+    await router.push({ name: 'admin-home' })
+  } catch (e) {
+    const message = formatActionError(e)
+    actionError.value = message
+    toast.error(message)
+  } finally {
+    actionLoading.value = false
+  }
 }
 
 async function convertToCrm() {
@@ -167,9 +201,13 @@ async function convertToCrm() {
   try {
     const opp = await crmStore.convertFromLead(leadId.value)
     await leadsStore.fetchLeadDetail(leadId.value)
+    leadsStore.invalidateAdminLists()
+    toast.success(t('admin.crm.toast_converted'))
     await router.push({ name: 'admin-opportunity-detail', params: { id: opp.id } })
   } catch (e) {
-    actionError.value = crmStore.actionError || (e as Error).message
+    const message = crmStore.actionError || formatActionError(e)
+    actionError.value = message
+    toast.error(message)
   } finally {
     converting.value = false
   }
@@ -209,14 +247,14 @@ const btnSecondary =
     </button>
 
     <section
-      v-if="leadsStore.leadDetailLoading"
+      v-if="showInitialLoading"
       class="rounded-radius border border-gray-light bg-white p-6 text-sm text-text-muted"
     >
       {{ t('admin.leads.detail_loading') }}
     </section>
 
     <section
-      v-else-if="leadsStore.leadDetailError"
+      v-else-if="leadsStore.leadDetailError && !lead"
       class="rounded-radius border border-gray-light bg-white p-6 text-sm text-red-600"
     >
       {{ leadsStore.leadDetailError }}
@@ -460,7 +498,7 @@ const btnSecondary =
           type="button"
           class="rounded-radius-sm border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-700 disabled:opacity-40 hover:bg-red-50"
           :disabled="actionLoading"
-          @click="deleteLead"
+          @click="openDelete"
         >
           {{ t('admin.leads.action_delete') }}
         </button>
@@ -525,6 +563,27 @@ const btnSecondary =
       </button>
       <button type="button" :class="btnPrimary" :disabled="actionLoading" @click="submitClose">
         {{ t('admin.leads.confirm_close') }}
+      </button>
+    </div>
+  </AdminModal>
+
+  <AdminModal
+    :open="deleting"
+    :title="t('admin.leads.delete_title')"
+    :description="t('admin.leads.delete_confirm')"
+    @close="deleting = false"
+  >
+    <div class="mt-2 flex justify-end gap-2">
+      <button type="button" :class="btnSecondary" :disabled="actionLoading" @click="deleting = false">
+        {{ t('admin.leads.cancel') }}
+      </button>
+      <button
+        type="button"
+        class="rounded-radius-sm border border-red-200 bg-red-600 px-3 py-2 text-xs font-semibold text-white disabled:opacity-40 hover:bg-red-700"
+        :disabled="actionLoading"
+        @click="submitDelete"
+      >
+        {{ t('admin.leads.confirm_delete') }}
       </button>
     </div>
   </AdminModal>

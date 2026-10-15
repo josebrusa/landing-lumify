@@ -5,6 +5,7 @@ import Footer from './components/layout/Footer.vue'
 import CookieConsentBanner from './components/layout/CookieConsentBanner.vue'
 import Modal from './components/modals/Modal.vue'
 import PricingModal from './components/modals/PricingModal.vue'
+import AppToastHost from './components/ui/AppToastHost.vue'
 import { useLocaleStore } from './stores/locale'
 
 const localeStore = useLocaleStore()
@@ -29,4 +30,5 @@ watch(() => localeStore.lang, syncHtmlLang)
     <PricingModal />
   </template>
   <CookieConsentBanner />
+  <AppToastHost />
 </template>

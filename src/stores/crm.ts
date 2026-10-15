@@ -43,6 +43,7 @@ export const useCrmStore = defineStore('crm', () => {
   const opportunityDetail = ref<CrmOpportunityDetail | null>(null)
   const opportunityLoading = ref(false)
   const opportunityError = ref<string | null>(null)
+  let opportunityRequestSeq = 0
 
   const meetings = ref<CrmMeeting[]>([])
   const meetingsLoading = ref(false)
@@ -77,15 +78,25 @@ export const useCrmStore = defineStore('crm', () => {
   }
 
   async function fetchOpportunity(id: string) {
-    opportunityLoading.value = true
+    const requestSeq = ++opportunityRequestSeq
+    const keepStale = opportunityDetail.value?.id === id
+    if (!keepStale) {
+      opportunityDetail.value = null
+      opportunityLoading.value = true
+    }
     opportunityError.value = null
     try {
-      opportunityDetail.value = await crmService.getOpportunity(id)
+      const next = await crmService.getOpportunity(id)
+      if (requestSeq !== opportunityRequestSeq) return
+      opportunityDetail.value = next
     } catch (e) {
+      if (requestSeq !== opportunityRequestSeq) return
       opportunityError.value = formatHttpError(e)
-      opportunityDetail.value = null
+      if (!keepStale) opportunityDetail.value = null
     } finally {
-      opportunityLoading.value = false
+      if (requestSeq === opportunityRequestSeq) {
+        opportunityLoading.value = false
+      }
     }
   }
 

@@ -10,6 +10,7 @@ import {
 import { useI18n } from '@/composables/useI18n'
 import { useLocaleStore } from '@/stores/locale'
 import { useLeadsStore } from '@/stores/leads'
+import { useToastStore } from '@/stores/toast'
 import type { AuditPackKey, LeadAssessmentAnalysis } from '@/types/api'
 
 const props = defineProps<{
@@ -20,6 +21,7 @@ const props = defineProps<{
 const { t } = useI18n()
 const localeStore = useLocaleStore()
 const leadsStore = useLeadsStore()
+const toast = useToastStore()
 
 const AREA_ORDER: AssessmentAreaId[] = ['pim', 'dam', 'seo', 'ux', 'compliance']
 
@@ -149,11 +151,13 @@ async function copyDraft() {
   try {
     await navigator.clipboard.writeText(text)
     copyDone.value = true
+    toast.success(t('admin.assessment.copied'))
     window.setTimeout(() => {
       copyDone.value = false
     }, 2000)
   } catch {
     copyDone.value = false
+    toast.error(t('admin.assessment.copy_error'))
   }
 }
 
@@ -163,8 +167,11 @@ async function regenerate() {
   regenerateError.value = null
   try {
     await leadsStore.regenerateLeadReport(props.leadId)
+    toast.success(t('admin.assessment.toast_regenerated'))
   } catch (e) {
-    regenerateError.value = e instanceof Error ? e.message : t('admin.assessment.regenerate_error')
+    const message = e instanceof Error ? e.message : t('admin.assessment.regenerate_error')
+    regenerateError.value = message
+    toast.error(message)
   } finally {
     regenerating.value = false
   }

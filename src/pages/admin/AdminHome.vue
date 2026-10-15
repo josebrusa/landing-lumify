@@ -103,10 +103,13 @@ watch([from, to, tz], () => {
       <h1 class="font-heading text-2xl font-bold text-text mb-1">{{ t('admin.dashboard.title') }}</h1>
       <p class="text-sm text-text-muted mb-4">{{ t('admin.dashboard.subtitle') }}</p>
 
-      <div v-if="leadsStore.summaryLoading" class="text-sm text-text-muted">
+      <div
+        v-if="leadsStore.summaryLoading && !leadsStore.summary"
+        class="text-sm text-text-muted"
+      >
         {{ t('admin.leads.summary_loading') }}
       </div>
-      <p v-else-if="leadsStore.summaryError" class="text-sm text-red-600">
+      <p v-else-if="leadsStore.summaryError && !leadsStore.summary" class="text-sm text-red-600">
         {{ leadsStore.summaryError }}
       </p>
       <div v-else-if="leadsStore.summary" class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
@@ -176,7 +179,12 @@ watch([from, to, tz], () => {
 
       <p v-if="leadsStore.kpisError" class="mb-3 text-sm text-red-600">{{ leadsStore.kpisError }}</p>
 
-      <div v-if="leadsStore.kpisLoading" class="text-sm text-text-muted">Cargando KPIs…</div>
+      <div
+        v-if="leadsStore.kpisLoading && !leadsStore.kpis"
+        class="text-sm text-text-muted"
+      >
+        Cargando KPIs…
+      </div>
       <div
         v-else-if="leadsStore.kpis"
         class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6"
@@ -209,7 +217,12 @@ watch([from, to, tz], () => {
 
       <div class="mt-5">
         <p v-if="leadsStore.timeseriesError" class="mb-3 text-sm text-red-600">{{ leadsStore.timeseriesError }}</p>
-        <div v-if="leadsStore.timeseriesLoading" class="text-sm text-text-muted">Cargando serie…</div>
+        <div
+          v-if="leadsStore.timeseriesLoading && !leadsStore.timeseries"
+          class="text-sm text-text-muted"
+        >
+          Cargando serie…
+        </div>
         <div v-else-if="leadsStore.timeseries?.points?.length" class="overflow-x-auto">
           <table class="min-w-full border-collapse text-sm">
             <thead>
@@ -351,15 +364,22 @@ watch([from, to, tz], () => {
             </tr>
           </thead>
           <tbody>
-            <tr v-if="table.loading">
+            <tr v-if="table.loading && !table.items.length">
               <td colspan="8" class="py-4 text-text-muted">{{ t('admin.leads.table_loading') }}</td>
             </tr>
 
             <template v-else-if="table.items.length">
               <tr
+                v-if="table.loading"
+                class="border-b border-gray-light/70 text-text-muted"
+              >
+                <td colspan="8" class="py-2 text-xs">{{ t('admin.leads.table_updating') }}</td>
+              </tr>
+              <tr
                 v-for="item in table.items"
                 :key="item.id"
                 class="cursor-pointer border-b border-gray-light/70 text-text hover:bg-surface"
+                :class="table.loading ? 'opacity-70' : ''"
                 @click="openLeadDetail(item.id)"
               >
                  <td class="py-3 pr-4">{{ item.company || '-' }}</td>
@@ -408,7 +428,7 @@ watch([from, to, tz], () => {
       </div>
 
       <div
-        v-if="!table.loading && table.total > table.limit"
+        v-if="table.total > table.limit"
         class="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-text-muted"
       >
         <span>

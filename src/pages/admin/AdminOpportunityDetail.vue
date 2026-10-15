@@ -184,10 +184,16 @@ function goLead() {
       {{ t('admin.crm.back_pipeline') }}
     </button>
 
-    <section v-if="crm.opportunityLoading" class="rounded-radius border border-gray-light bg-white p-6 text-sm text-text-muted">
+    <section
+      v-if="crm.opportunityLoading && !opp"
+      class="rounded-radius border border-gray-light bg-white p-6 text-sm text-text-muted"
+    >
       {{ t('admin.crm.loading') }}
     </section>
-    <section v-else-if="crm.opportunityError" class="rounded-radius border border-gray-light bg-white p-6 text-sm text-red-600">
+    <section
+      v-else-if="crm.opportunityError && !opp"
+      class="rounded-radius border border-gray-light bg-white p-6 text-sm text-red-600"
+    >
       {{ crm.opportunityError }}
     </section>
     <template v-else-if="opp">

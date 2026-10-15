@@ -126,6 +126,7 @@ export const useLeadsStore = defineStore('leads', () => {
   const leadDetail = ref<LeadItem | null>(null)
   const leadDetailLoading = ref(false)
   const leadDetailError = ref<string | null>(null)
+  let leadDetailRequestSeq = 0
 
   const kpis = ref<LeadsKpisResponse | null>(null)
   const kpisLoading = ref(false)
@@ -239,8 +240,6 @@ export const useLeadsStore = defineStore('leads', () => {
       table.total = res.total
     } catch (e) {
       table.error = formatHttpError(e)
-      table.items = []
-      table.total = 0
     } finally {
       table.loading = false
     }
@@ -260,17 +259,32 @@ export const useLeadsStore = defineStore('leads', () => {
   }
 
   async function fetchLeadDetail(id: string) {
-    leadDetailLoading.value = true
-    leadDetailError.value = null
-    leadDetail.value = null
-    try {
-      leadDetail.value = await leadsService.getAdminLead(id)
-    } catch (e) {
-      leadDetailError.value = formatHttpError(e)
+    const requestSeq = ++leadDetailRequestSeq
+    const keepStale = leadDetail.value?.id === id
+    if (!keepStale) {
       leadDetail.value = null
-    } finally {
-      leadDetailLoading.value = false
+      leadDetailLoading.value = true
     }
+    leadDetailError.value = null
+    try {
+      const next = await leadsService.getAdminLead(id)
+      if (requestSeq !== leadDetailRequestSeq) return
+      leadDetail.value = next
+    } catch (e) {
+      if (requestSeq !== leadDetailRequestSeq) return
+      leadDetailError.value = formatHttpError(e)
+      if (!keepStale) leadDetail.value = null
+    } finally {
+      if (requestSeq === leadDetailRequestSeq) {
+        leadDetailLoading.value = false
+      }
+    }
+  }
+
+  /** Soft refresh of list + summary after mutations (does not block UI). */
+  function invalidateAdminLists() {
+    void refreshAdminTable()
+    void fetchSummary()
   }
 
   async function fetchKpis(payload: { from: string; to: string; tz: string }) {
@@ -392,6 +406,7 @@ export const useLeadsStore = defineStore('leads', () => {
     leadDetailLoading,
     leadDetailError,
     fetchLeadDetail,
+    invalidateAdminLists,
     kpis,
     kpisLoading,
     kpisError,
