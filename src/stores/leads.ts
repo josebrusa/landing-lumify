@@ -345,6 +345,10 @@ export const useLeadsStore = defineStore('leads', () => {
     await leadsService.startAdminLead(id)
   }
 
+  async function regenerateLeadReport(id: string) {
+    leadDetail.value = await leadsService.regenerateAdminLeadReport(id)
+  }
+
   async function replyLead(id: string, message: string) {
     await leadsService.replyAdminLead(id, { message })
   }
@@ -397,6 +401,7 @@ export const useLeadsStore = defineStore('leads', () => {
     timeseriesError,
     fetchTimeseries,
     startLead,
+    regenerateLeadReport,
     replyLead,
     closeLead,
     archiveLead,

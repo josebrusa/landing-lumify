@@ -11,9 +11,54 @@ export interface LocalizedText {
 
 export interface AssessmentQuestion {
   text: LocalizedText
-  opts: [LocalizedText, LocalizedText, LocalizedText]
-  pts: [number, number, number]
+  opts: LocalizedText[]
+  /** Optional points per option (legacy scoring for area questions). */
+  pts?: number[]
 }
+
+/** Offer-oriented context (detailed review). Keys: context-0..2 */
+export const CONTEXT_QUESTIONS: AssessmentQuestion[] = [
+  {
+    text: {
+      es: '¿En qué sector opera principalmente tu catálogo?',
+      ca: 'En quin sector opera principalment el teu catàleg?',
+      en: 'Which sector does your catalog mainly operate in?',
+    },
+    opts: [
+      { es: 'Retail moda', ca: 'Retail moda', en: 'Fashion retail' },
+      { es: 'Electrónica / tecnología', ca: 'Electrònica / tecnologia', en: 'Electronics / technology' },
+      { es: 'Beauty / selectivo', ca: 'Beauty / selectiu', en: 'Beauty / selective retail' },
+      { es: 'Industrial / B2B técnico', ca: 'Industrial / B2B tècnic', en: 'Industrial / technical B2B' },
+      { es: 'Otro', ca: 'Altre', en: 'Other' },
+    ],
+  },
+  {
+    text: {
+      es: '¿Qué sistema usáis hoy para el dato de producto?',
+      ca: 'Quin sistema feu servir avui per a la dada de producte?',
+      en: 'What system do you use today for product data?',
+    },
+    opts: [
+      { es: 'Sin PIM (web/ERP solo)', ca: 'Sense PIM (web/ERP només)', en: 'No PIM (web/ERP only)' },
+      { es: 'Excel / carpetas / ERP sin modelo PIM', ca: 'Excel / carpetes / ERP sense model PIM', en: 'Excel / folders / ERP without PIM model' },
+      { es: 'PIM en uso', ca: 'PIM en ús', en: 'PIM in use' },
+      { es: 'No lo sé / en evaluación', ca: 'No ho sé / en avaluació', en: "Don't know / evaluating" },
+    ],
+  },
+  {
+    text: {
+      es: '¿Cuáles son vuestros canales prioritarios a corto plazo?',
+      ca: 'Quins són els vostres canals prioritaris a curt termini?',
+      en: 'What are your priority channels in the short term?',
+    },
+    opts: [
+      { es: 'Solo web propia', ca: 'Només web pròpia', en: 'Own web only' },
+      { es: 'Marketplaces', ca: 'Marketplaces', en: 'Marketplaces' },
+      { es: 'B2B / portal mayorista', ca: 'B2B / portal majorista', en: 'B2B / wholesale portal' },
+      { es: 'Varios canales', ca: 'Diversos canals', en: 'Multiple channels' },
+    ],
+  },
+]
 
 export interface AreaDefinition {
   id: AssessmentAreaId
@@ -376,8 +421,9 @@ export function computeQuestionScores(
     let max = 0
     QUESTION_DB[area].forEach((q, qi) => {
       const oi = answers[`${area}-${qi}`] ?? 0
-      pts += q.pts[oi] ?? 0
-      max += q.pts[0]
+      const scale = q.pts ?? []
+      pts += scale[oi] ?? 0
+      max += scale[0] ?? 10
     })
     scores[area] = max ? Math.round((pts / max) * 100) : 0
     totalPts += pts

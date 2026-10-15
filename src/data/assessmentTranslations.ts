@@ -68,7 +68,9 @@ export const assessmentEs: Record<string, string> = {
   'assess.results.upgrade_cta': 'Solicitar revisión detallada',
   'assess.q.label': 'Cuéntanos más',
   'assess.q.title': 'Preguntas por área',
-  'assess.q.desc': '2-3 preguntas por área. Nos ayudan a preparar un informe accionable.',
+  'assess.q.desc':
+    'Contexto de oferta + 2-3 preguntas por área. Nos ayudan a preparar un informe accionable.',
+  'assess.q.context': 'Contexto para la propuesta',
   'assess.q.error': 'Responde todas las preguntas para continuar.',
   'assess.q.cta': 'Continuar →',
   'assess.email.label': 'Último paso',
@@ -206,7 +208,9 @@ export const assessmentCa: Record<string, string> = {
   'assess.results.upgrade_cta': 'Sol·licitar revisió detallada',
   'assess.q.label': 'Explica’ns més',
   'assess.q.title': 'Preguntes per àrea',
-  'assess.q.desc': '2-3 preguntes per àrea. Ens ajuden a preparar un informe accionable.',
+  'assess.q.desc':
+    'Context d’oferta + 2-3 preguntes per àrea. Ens ajuden a preparar un informe accionable.',
+  'assess.q.context': 'Context per a la proposta',
   'assess.q.error': 'Respon totes les preguntes per continuar.',
   'assess.q.cta': 'Continuar →',
   'assess.email.label': 'Últim pas',
@@ -344,7 +348,9 @@ export const assessmentEn: Record<string, string> = {
   'assess.results.upgrade_cta': 'Request detailed review',
   'assess.q.label': 'Tell us more',
   'assess.q.title': 'Questions by area',
-  'assess.q.desc': '2–3 questions per area. They help us prepare an actionable report.',
+  'assess.q.desc':
+    'Offer context + 2–3 questions per area. They help us prepare an actionable report.',
+  'assess.q.context': 'Context for the proposal',
   'assess.q.error': 'Answer all questions to continue.',
   'assess.q.cta': 'Continue →',
   'assess.email.label': 'Last step',

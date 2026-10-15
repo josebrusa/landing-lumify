@@ -368,6 +368,7 @@ const btnSecondary =
       <AdminAssessmentDossier
         v-if="lead.interestType === 'ecommerce_assessment' && lead.analysis"
         :analysis="lead.analysis"
+        :lead-id="lead.id"
       />
 
       <!-- Timeline -->

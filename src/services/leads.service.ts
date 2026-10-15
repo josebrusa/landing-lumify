@@ -72,6 +72,13 @@ export async function startAdminLead(id: string): Promise<LeadItem> {
   return data
 }
 
+export async function regenerateAdminLeadReport(id: string): Promise<LeadItem> {
+  const { data } = await apiClient.post<LeadItem>(
+    `/admin/leads/inquiries/${encodeURIComponent(id)}/regenerate-report`,
+  )
+  return data
+}
+
 export async function replyAdminLead(id: string, body: { message: string }): Promise<LeadItem> {
   const { data } = await apiClient.post<LeadItem>(
     `/admin/leads/inquiries/${encodeURIComponent(id)}/reply`,

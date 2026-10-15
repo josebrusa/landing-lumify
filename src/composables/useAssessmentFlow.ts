@@ -1,6 +1,7 @@
 import { computed, reactive, ref } from 'vue'
 import {
   AREA_DEFS,
+  CONTEXT_QUESTIONS,
   QUESTION_DB,
   computeQuestionScores,
   type AssessmentAreaId,
@@ -101,12 +102,15 @@ export function useAssessmentFlow() {
     typeError.value = false
   }
 
-  function setAnswer(area: AssessmentAreaId, qi: number, oi: number) {
+  function setAnswer(area: AssessmentAreaId | 'context', qi: number, oi: number) {
     answers[`${area}-${qi}`] = oi
     questionsError.value = false
   }
 
   function allQuestionsAnswered() {
+    for (let i = 0; i < CONTEXT_QUESTIONS.length; i++) {
+      if (answers[`context-${i}`] === undefined) return false
+    }
     for (const area of selectedAreas.value) {
       for (let i = 0; i < QUESTION_DB[area].length; i++) {
         if (answers[`${area}-${i}`] === undefined) return false
